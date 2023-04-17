@@ -7,5 +7,3 @@
 [Глава 3. Создание приложений RISC-V](Chapters/Chapter3.md)
 
 [Глава 4. Методы отладки](Chapters/Chapter4.md)
-
-[Список терминов](Chapters/термины.md)
