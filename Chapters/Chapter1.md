@@ -143,8 +143,7 @@ gcc --sysroot=/path/to/aarch64/sysroot -march=armv8-a hello.c
 
 Еще более запутанная система — [канадский кросс-компилятор](https://en.wikipedia.org/wiki/Cross_compiler#Canadian_Cross). В ней участвуют два кросс-компилятора. В этой настройке есть три машины A, B и C. Кросс-компилятор в A (CA) сгенерирует другой кросс-компилятор (CB), который будет работать на B. CB сгенерирует код для машины C.
 
-![Канадский кросс-компилятор](canadian_cross.png «https://en.wikipedia.org/wiki/File:Example_of_Canadian_Cross,_scheme.svg](https://en.wikipedia.org/wiki/File:Example_of_Canadian_Cross,_scheme.svg»)
-
+![Канадский кросс-компилятор](https://upload.wikimedia.org/wikipedia/commons/c/cb/Example_of_Canadian_Cross%2C_scheme.svg "https://en.wikipedia.org/wiki/File:Example_of_Canadian_Cross,_scheme.svg")
 ## Введение в инструментарий GCC
 
 Популярный компилятор gcc поставляется вместе с инструментарием gcc. Его можно загрузить с [зеркальных сайтов GCC](https://gcc.gnu.org/mirrors.html). Чтобы загрузить предварительно скомпилированные двоичные файлы, готовые к использованию, перейдите на страницу [Установка GCC: двоичные файлы](https://gcc.gnu.org/install/binaries.html).
