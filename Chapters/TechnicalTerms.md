@@ -1,41 +1,33 @@
 # Список терминов
 
-- IoT-устройства
 - toolchain — инструментарий, набор инструментов
 - языки высокого/низкого уровня
 - статический анализ
 - instrumentation — инструментирование
 - introspection — интроспекция
-- bottleneck — узкое место: ограничение, при котором теряется доля производительности или пропускной возможности системы
+- bottleneck — узкое место
 - runtime profile — профиль времени выполнения
-- итеративная разработка
 - loop unrolling — развертывание циклов
-- inlining — встраивание функций/инлайнинг
+- inlining — встраивание функций или инлайнинг
 - instruction scheduling — планирование инструкций
 - register allocation — распределение регистров
-- partial redundancy elimination — частичное устранение избыточности
 - benchmark — тест производительности
 - stack frame — кадр стека
 - buffer overflow —  переполнение буфера
 - coverage file — файл покрытия
-- code layout — размещение кода(?)
+- code layout — размещение кода
 - sampling profiler — семплирующий профилятор
-- test vectors (the rogram was run)
-- исключения
 - call site devirtualization — девиртуализация вызовов
-- трансляция кода
 - instantiate — инстанцировать
 - dead code — мертвый код
-- векторизация
 - comprehensive test suite — комплексный набор тестов
 - rich performance profiles — расширенные профили производительности
-- prebuilt toolchain — набор инструментов в собранном виде
 - ELF targets — целевые платформы ELF
 - sub-architecture — субархитектура
 - SoCs — однокристальные системы
 - print debugging — отладка на основе печати
 - sanitizers — санитайзеры
 - assertion — в курсе не переводится
-- breakpoint — точка останова/контрольная точка
+- breakpoint — точка останова или контрольная точка
 - backtrace — в курсе не переводится
 - single-stepping instructions — пошаговые инстукции
