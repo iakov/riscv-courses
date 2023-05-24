@@ -140,8 +140,8 @@ as -v --64 -o /tmp/ccAOJYkw.o /tmp/ccwbNcfY.s
 gcc --sysroot=/path/to/aarch64/sysroot -march=armv8-a hello.c
 ```
 
-Еще более запутанная система — [канадская сборка](https://en.wikipedia.org/wiki/Cross_compiler#Canadian_Cross)[^canadiain_cross]. В ней участвуют два кросс-компилятора. В этой настройке есть три машины A, B и C. Кросс-компилятор в A (CA) сгенерирует другой кросс-компилятор (CB), который будет работать на B. CB сгенерирует код для машины C.
-[^canadian_cross]:Примечание переводчика: приведённые в курсе описание и иллюстрация канадской сборки могут лишь запутать читателя, рекомендуетяс ознакомиться с ней отдельно).
+Еще более запутанная система — [канадская сборка](https://en.wikipedia.org/wiki/Cross_compiler#Canadian_Cross)[^canadian_cross]. В ней участвуют два кросс-компилятора. В этой настройке есть три машины A, B и C. Кросс-компилятор в A (CA) сгенерирует другой кросс-компилятор (CB), который будет работать на B. CB сгенерирует код для машины C.
+[^canadian_cross]:Примечание переводчика: приведённые в курсе описание и иллюстрация канадской сборки могут лишь запутать читателя, рекомендуется ознакомиться с ней отдельно.
 
 ![Схематичный пример канадской сборки](https://upload.wikimedia.org/wikipedia/commons/c/cb/Example_of_Canadian_Cross%2C_scheme.svg "https://en.wikipedia.org/wiki/File:Example_of_Canadian_Cross,_scheme.svg")
 ## Введение в инструментарий GCC
