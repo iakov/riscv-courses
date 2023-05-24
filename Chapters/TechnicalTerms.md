@@ -1,10 +1,11 @@
 # Список терминов
 
 - toolchain — инструментарий, набор инструментов
-- языки высокого/низкого уровня
-- статический анализ
+- high-level/low-level languages — языки высокого/низкого уровня
+- static analysis — статический анализ
 - instrumentation — инструментирование
 - introspection — интроспекция
+- compiler-driver ­— драйвер компилятора
 - bottleneck — узкое место
 - runtime profile — профиль времени выполнения
 - loop unrolling — развертывание циклов
@@ -25,8 +26,8 @@
 - ELF targets — целевые платформы ELF
 - sub-architecture — субархитектура
 - SoCs — однокристальные системы
-- print debugging — отладка на основе печати
-- sanitizers — санитайзеры
+- print debugging — отладочная печать
+- sanitizer — санитайзер
 - assertion — в курсе не переводится
 - breakpoint — точка останова или контрольная точка
 - backtrace — в курсе не переводится
