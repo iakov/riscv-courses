@@ -17,5 +17,5 @@ jobs:
             - uses: actions/upload-artifact@v3
               with:
                 name: Course
-                path: ${{env.RESULT_PDF}}
+                path: ${{ env.RESULT_PDF }}
                 if-no-files-found: error
