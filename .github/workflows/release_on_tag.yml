@@ -9,19 +9,26 @@ permissions:
     contents: write
 
 jobs:
-    build:
+    release:
         runs-on: ubuntu-latest
-        container: asciidoctor/docker-asciidoctor
         env:
             RESULT_PDF: Course.pdf
         steps:
             - uses: actions/checkout@v3
+            - name: Pull Container
+              run: |
+                docker pull asciidoctor/docker-asciidoctor:latest
             - name: Build pdf
-              run: make
+              run: |
+                docker run --rm -v "${{ github.workspace }}":/documents asciidoctor/docker-asciidoctor make
+            - uses: actions/upload-artifact@v3
+              with:
+                name: Course
+                path: ${{ env.RESULT_PDF }}
+                if-no-files-found: error
             - name: Release
               run: |
-                gh release create ${{ github.ref_name}} -t "${{ env.NAME }}" ${{ env.FILES }}
+                gh release create ${{ github.ref_name}} -t "${{ env.NAME }}" ${{ env.RESULT_PDF }}
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 NAME: "${{ github.ref_name}} RISC-V Toolchain and Compiler Optimization Techniques (LFD113x)"
-                FILES: ${{ env.RESULT_PDF }}
