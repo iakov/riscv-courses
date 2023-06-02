@@ -1,0 +1,228 @@
+== Глава 3. Создание приложений RISC-V
+
+В этой главе мы узнаем, как использовать популярные наборы инструментов компилятора (как LLVM, так и GCC) для создания приложений RISC-V,
+а также как запускать приложения на симуляторах и эмуляторах.
+В этой главе представлены вводные материалы, которые помогут вам получить практический опыт создания и запуска приложений RISC-V.
+Поскольку инструменты и их зависимости часто меняются, некоторые аспекты этого курса могут работать некорректно до тех пор,
+пока не будет произведено обновление курса.
+Помня об этом, мы приводим ссылки на официальные списки рассылки, репозитории GitHub и веб-сайты.
+Они могут оказаться весьма полезными, если вы захотите углубиться в какие-либо области разработки RISC-V.
+
+В этой главе мы обсудим:
+
+* введение в инструментарий RISC-V;
+* где скачать наборы инструментов и симулятор;
+* создание приложений с помощью этого набора инструментов;
+* запуск приложений на симуляторе;
+* запуск приложений на эмуляторе;
+* полезные справочные материалы.
+
+=== Введение в инструментарий RISC-V
+
+Есть два наиболее популярных набора инструментов RISC-V.
+
+[arabic]
+. GNU RISC-V
+. LLVM RISC-V
+
+Оба набора инструментов предоставляют оптимизирующий компилятор, ассемблер, компоновщик и другие различные инструменты для создания
+приложений, работающих на машинах RISC-V.
+Официальный https://github.com/riscv-collab/riscv-gcc[репозиторий RISC-V на GitHub] предоставляет исходный код для набора инструментов `riscv-gnu`,
+набор инструментов в собранном виде можно скачать по https://github.com/riscv-collab/riscv-gnu-toolchain[ссылке]
+Компилятор RISC-V обычно используется в качестве кросс-компилятора,
+поскольку многие процессоры RISC-V используются для встраиваемых приложений с низким энергопотреблением.
+В настоящее время кросс-компиляторы RISC-V можно запускать только на
+https://en.wikipedia.org/wiki/Comparison_of_executable_file_formats[целевых платформах ELF] таких, как Linux-машины.
+
+Инструментарий RISC-V LLVM недоступен у сторонних поставщиков, но его можно собрать из исходников, загрузив проект
+https://github.com/llvm/llvm-project[llvm-project] с открытым кодом.
+Позже будет описан простой способ использования набора инструментов llvm с gnu sysroot.
+
+Симулятор RISC-V можно загрузить из официального репозитория RISC-V на GitHub:
+https://github.com/riscv-software-src/riscv-isa-sim[riscv/riscv-isa-sim:Spike, симулятор RISC-V ISA].
+Хотя платы RISC-V легко доступны у нескольких производителей, начать разработку RISC-V проще начать, используя симуляторы.
+
+=== Создание приложений с помощью набора инструментов
+
+Для создания приложения для RISC-V использование инструментальной цепочки кросс-компилятора не отличается от любой другой системы разработки на основе кросс-компилятора.
+Требуется две вещи:
+
+* инструментарий компилятора
+* sysroot
+
+В <<section-chapter1>> мы описали инструментарий компилятора и `sysroot`.
+Прежде чем научиться создавать приложения с помощью набора инструментов RISC-V,
+мы хотели бы представить интересное соглашение об именовании, которое используется для кросс-компиляторов.
+
+==== Соглашение об именовании компиляторов
+
+Когда вы загружаете инструментарий GCC, в каталоге `bin` вы найдете двоичный файл `riscv64-unknown-elf-gcc`.
+Это тот же самый компилятор GCC со встроенной информацией о `sysroot` и платформе.
+Это соглашение -- называть кросс-компиляторы таким образом. Обычно для именования используется формат `arch-vendor-os-abi`.
+Так, `riscv64-unknown-elf-gcc` означает, что это кросс-компилятор для RISC-V 64 bit,
+и он будет генерировать двоичный файл `elf`, который может работать, например, на машинах Linux.
+Отличный справочник по соглашениям об именовании можно найти
+http://web.eecs.umich.edu/~prabal/teaching/eecs373-f12/notes/notes-toolchain.pdf[здесь].
+В случаях, когда имя компилятора не содержит целевого триплета, для его получения можно использовать флаг `-dumpmachine`:
+
+[source,bash]
+----
+gcc -dumpmachine
+# x86_64-linux-gnu
+----
+
+Имея под рукой компилятор `riscv64-unknown-elf-gcc`, файл можно скомпилировать следующими способами:
+
+[source,bash]
+----
+riscv64-unknown-elf-gcc -O2 -o a.out hello.c
+----
+
+[source,bash]
+----
+riscv64-unknown-elf-gcc -O2 hello.c -mabi=lp64d -march=rv64ifd
+----
+:mabi: footnote:[Примечание переводчика: не просто модель даннных, а двоичный интерфейс приложения (ABI).]
+
+Флаг `-march` используется для указания целевой субархитектуры, для которой будет сгенерирована сборка.
+Флаг `-mabi` используется для указания моделей данных{mabi}.
+Более подробную информацию о моделях данных можно найти в
+https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models[этом разделе] Википедии о 64-битовых вычислениях.
+
+С помощью инструментария llvm двоичный файл может быть собран аналогичным образом.
+Предполагается, что `sysroot` находится в каталоге `riscv64-unknown-elf`:
+
+[source,bash]
+----
+clang test.c -c --sysroot riscv64-unknown-elf -target
+# riscv64-unknown-elf -march=rv64ifd
+----
+
+Приложения RISC-V можно запускать как на устройствах, так и на симуляторах или эмуляторах.
+Мы кратко обсудим, как запустить приложение на симуляторе, а также на эмуляторе.
+
+=== Запуск приложений на симуляторе Spike
+
+Одним из самых удобных способов запуска небольших приложений является использование симулятора RISC-V.
+Шаги по сборке и установке достаточно просты.
+Для этого вам понадобятся следующие зависимости:
+
+[arabic]
+. Linux-машина -- создание образа Linux на других машинах нетривиально, поэтому для начала рекомендуется использовать Linux-машину.
+. Набор инструментов RISC-V: https://github.com/riscv-software-src
+. Spike, симулятор
+RISC-V: https://github.com/riscv-software-src/riscv-isa-sim
+. pk, прокси-ядро RISC-V: https://github.com/riscv-software-src/riscv-pk
+
+Инструкции по запуску простого приложения `hello-world` на симуляторе Spike приведены в
+https://github.com/riscv-software-src/riscv-isa-sim#compiling-and-running-a-simple-c-program[README] репозитория симулятора.
+Чтобы установить прокси-ядро, следуйте инструкциям в https://github.com/riscv-software-src/riscv-pk#build-steps[README] репозитория `pk`.
+Для удобства вы можете установить и `spike`, и `pk` в тот же каталог, что и каталог инструментария `riscv64`, указав путь к нему в качестве префикса установки для обоих.
+
+=== Запуск приложений на эмуляторе
+
+Запуск приложения RISC-V на эмуляторе обеспечивает большую гибкость, чем на симуляторе, но этапы установки требуют больше усилий.
+Чтобы запустить приложение RISC-V на эмуляторе, необходимо иметь следующие зависимости:
+
+[arabic]
+. Linux-машина -- создание образа Linux на других машинах нетривиально,
+поэтому для начала рекомендуется использовать Linux-машину.
+. набор инструментов
+RISC-V: https://github.com/riscv-software-src
+. QEMU: `git clone --depth 1 --branch v5.0.0 https://github.com/qemu/qemu`
+. Linux: `git clone --depth 1 --branch v5.4 https://github.com/torvalds/linux`
+. Busybox: `git clone --depth 1 git://git.busybox.net/busybox`
+
+Перечисленные выше ветки репозиториев являются предлагаемыми версиями, которые могут часто меняться.
+Вы можете выбрать и другие.
+Приведенная выше документация может устареть, если в какой-либо из зависимостей произойдут изменения.
+Проверьте страницу документации
+https://risc-v-getting-started-guide.readthedocs.io/en/latest/linux-qemu.html[Запуск 64- и 32-битных RISC-V Linux на QEMU], чтобы узнать последние поддерживаемые версии.
+Если эта документация не работает, обязательно спросите в списке рассылки http://lists.infradead.org/pipermail/linux-riscv/[linux-riscv].
+
+==== Сборка QEMU для RISC-V
+
+[source,bash]
+----
+cd qemu
+./configure --target-list=riscv64-softmmu --prefix=/path/to/keep/qemu
+make -j $(nproc)
+make install
+----
+
+==== Сборка Linux для целевой системы RISC-V
+
+[source,bash]
+----
+cd linux
+make ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- defconfig
+make ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- -j $(nproc)
+----
+
+Убедитесь, что префикс кросс-компилятора совпадает с префиксом вашего набора инструментов.
+В приведенном выше примере компилятор GCC -- `riscv64-unknown-linux-gnu-gcc`,
+поэтому флаг `CROSS_COMPILE` --`riscv64-unknown-linux-gnu-`.
+
+==== Сборка busybox
+
+[source,bash]
+----
+cd busybox
+CROSS_COMPILE=riscv64-unknown-linux-gnu- make defconfig
+CROSS_COMPILE=riscv64-unknown-linux-gnu- make -j $(nproc)
+----
+
+==== Запуск образа Linux в QEMU
+
+[source,bash]
+----
+sudo /path/to/keep/qemu/bin/qemu-system-riscv64 -nographic -machine
+virt \
+     -kernel /path/to/linux/image -append "root=/dev/vda ro
+console=ttyS0" \
+     -drive file=busybox,format=raw,id=hd0 \
+     -device virtio-blk-device,drive=hd0
+----
+
+==== Запуск приложения на QEMU на «голом железе»
+
+[source,bash]
+----
+/path/to/keep/qemu/bin/qemu-system-riscv64 -nographic -machine virt
+-kernel /path/to/binary -bios none
+----
+
+Дополнительные конфигурации QEMU для RISC-V можно найти в
+https://wiki.qemu.org/Documentation/Platforms/RISCV[официальной документации].
+Помимо симуляторов и эмуляторов, приложения RISC-V можно запускать на виртуальных машинах, а также на имеющихся в продаже платах для разработки.
+Дополнительную документацию по отладке проблем с «голым железом» можно найти
+https://embeddedinn.xyz/articles/tutorial/Adding-a-custom-peripheral-to-QEMU/[здесь].
+Вы можете установить виртуальную машину RISC-V, как описано в документации https://wiki.debian.org/RISC-V[здесь].
+
+=== Справочные материалы
+
+* mailto:tech-toolchain-runtime@lists.riscv.org[Tech: Toolchain & Runtime Subcommittee mailing list]
+* https://wiki.osdev.org/GCC_Cross-Compiler[кросс-компилятор GCC]
+* https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models[64-битовые модели данных]
+* https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models[архив linux-riscv]
+* https://risc-v-getting-started-guide.readthedocs.io/en/latest/linux-qemu.html[Running 64- and 32-bit RISC-V Linux on QEMU]
+* https://wiki.qemu.org/Documentation/Platforms/RISCV[Qemu: Документация/Платформы/RISCV]
+* https://wiki.debian.org/RISC-V[Debian -- RISC-V Wiki]
+
+*Платы RISC-V*
+
+Страница https://riscv.org/exchange/[RISC-V Exchange]
+представляет собой коллекцию доступного физического оборудования в экосистеме RISC-V.
+Этот список курируется сообществом.
+
+*Ядра RISC-V*
+
+Страница https://riscv.org/exchange/?_sft_exchange_category=core,cores[RISC-V Exchange: Cores & SoCs] представляет собой коллекцию доступных IP-ядер однокристальных систем в экосистеме RISC-V.
+
+*Поставщики наборов инструментов и другого аппаратного и программного обеспечения:*
+
+* https://github.com/riscv-collab[RISC-V Software Collaboration]
+* https://github.com/sifive/freedom-tools/releases[sifive/freedom-tools]
+* https://github.com/lowRISC[lowRISC]
+* https://github.com/stnolting/riscv-gcc-prebuilt[stnolting/riscv-gcc-prebuilt]
+* https://www.sifive.com/software[SiFive/Software]

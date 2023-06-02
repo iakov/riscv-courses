@@ -1,0 +1,287 @@
+:imagesdir: ../images
+[#section-chapter1]
+== Глава 1. Инструментарий компилятора
+
+Технологии компиляции стали важны как никогда. 
+Как небольшие, так и крупные технологические компании нанимают разработчиков компиляторов. 
+С ростом использования IoT-устройств и машинного обучения потребность в таких инженерах за последние несколько лет резко возросла.
+
+У большинства крупных компаний есть разработчики инструментария, работающие над компиляторами с открытым или закрытым исходным кодом. 
+Некоторые инженеры улучшают сами компиляторы, некоторые -- работают над оптимизацией приложений, потребляющих много ресурсов.
+
+После ознакомления с данной главой вы будете: 
+
+* разбираться в инструментарии компилятора и инструментах, используемых при создании приложений;
+* понимать, как использовать популярные инструменты такие, как GCC и LLVM, для создания приложений, в частности приложений для RISC-V;
+* разбираться в структуре инструментария и знать, к каким ресурсам обращаться при возникновении вопросов;
+* понимать концепцию кросс-компиляции и sysroot.
+
+=== Введение в компиляторы
+
+Компилятор -- система, преобразующая язык программы с одного на другой. 
+В рамках курса компилятором будем называть программу, которая преобразует языки высокого уровня, такие как C или C{pp}, в язык низкого уровня: язык ассемблера или исполняемый формат. 
+Для этого обычно используются довольно продвинутые компиляторы с открытым исходным кодом, например, GCC или Clang.
+
+Вкратце, они:
+
+* Компилируют несколько языков высокого уровня: C, C{pp}, Fortran, Objective C и другие.
+* Предназначены для разных архитектур: ARM, AArch64, MIPS, RISC-V, WebAssembly, x86-64 и другие.
+* Оптимизируют скорость работы программы: разворачивают циклы, заменяют вызовы функций их определениями, векторизуют циклы и так далее.
+* Обеспечивают статический анализ, предупреждения о возможных ошибках и др.
+* Предоставляют программный интерфейс для других инструментов интроспекции
+и преобразования исходного кода.
+* Предоставляют возможности инструментирования исходного кода для анализа производительности и интроспекции.
+
+=== Инструментарий компилятора
+
+Какие зависимости необходимы для компиляции простой программы вроде `hello-world`? 
+Даже для такой программы нужны заголовочные файлы и библиотеки. 
+Заголовочный файл, например, `iostream`, используется во время компиляции для поиска объявления функций, отсутствующих в самой программе (например, `std::cout`), а библиотеки -- их определений (например, `std::operator<<`) во время компоновки. 
+Результат компиляции -- исполняемый файл, запускающийся на машине.
+
+=== Процесс компиляции
+
+Если для компиляции программы на языке C{pp} используется компилятор вроде g{pp}, процесс компиляции включает в себя несколько этапов, в зависимости от того, какой результат требуется получить. 
+Для просмотра этапов компиляции нужно передать компилятору флаг `-v`. 
+Для понимания процесса компиляции рассмотрим небольшую программу `hello-world`, представленную ниже:
+
+[source,cpp]
+----
+#include<iostream>
+int main() {
+   std::cout << "Hello world\n";
+   return 0;
+}
+----
+
+Давайте рассмотрим подробный вывод вызова компилятора g{pp}. 
+Хотя подробный вызов выводит много информации, интересующими нас строками являются вызов компилятора, вызов ассемблера и вызов компоновщика. 
+Мы только что сказали, что g{pp} hello.cpp -- это вызов компилятора. 
+Но это так лишь отчасти, поскольку g{pp} -- это не компилятор, а драйвер компилятора. 
+Драйвер компилятора -- это программа, которая вызывает различные инструменты в цепочке инструментов компилятора для перевода исходного кода на целевой язык.
+
+Компилятором в данном случае является `cc1plus`, вызов приведен ниже:
+
+[source,shell]
+----
+g++ hello.cpp -v
+----
+
+[source,sh]
+----
+Using built-in specs.
+COLLECT_GCC=g++
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper
+OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa
+OFFLOAD_TARGET_DEFAULT=1
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 11.3.0-1ubuntu1~22.04' --with-bugurl=file:///usr/share/doc/gcc-11/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++,m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-11 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-bootstrap --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --enable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-11-xKiWfi/gcc-11-11.3.0/debian/tmp-nvptx/usr,amdgcn-amdhsa=/build/gcc-11-xKiWfi/gcc-11-11.3.0/debian/tmp-gcn/usr --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu --with-build-config=bootstrap-lto-lean --enable-link-serialization=2
+Thread model: posix
+Supported LTO compression algorithms: zlib zstd
+gcc version 11.3.0 (Ubuntu 11.3.0-1ubuntu1~22.04) 
+COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'a-'
+ /usr/lib/gcc/x86_64-linux-gnu/11/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE hello.cpp -quiet -dumpdir a- -dumpbase hello.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccwbNcfY.s
+GNU C++17 (Ubuntu 11.3.0-1ubuntu1~22.04) version 11.3.0 (x86_64-linux-gnu)
+        compiled by GNU C version 11.3.0, GMP version 6.2.1, MPFR version 4.1.0, MPC version 1.2.1, isl version isl-0.24-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ignoring duplicate directory "/usr/include/x86_64-linux-gnu/c++/11"
+ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/11/include-fixed"
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/c++/11
+ /usr/include/x86_64-linux-gnu/c++/11
+ /usr/include/c++/11/backward
+ /usr/lib/gcc/x86_64-linux-gnu/11/include
+ /usr/local/include
+ /usr/include/x86_64-linux-gnu
+ /usr/include
+End of search list.
+GNU C++17 (Ubuntu 11.3.0-1ubuntu1~22.04) version 11.3.0 (x86_64-linux-gnu)
+        compiled by GNU C version 11.3.0, GMP version 6.2.1, MPFR version 4.1.0, MPC version 1.2.1, isl version isl-0.24-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+Compiler executable checksum: 449548cbb29044828dc7ea158b577b98
+COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'a-'
+ as -v --64 -o /tmp/ccAOJYkw.o /tmp/ccwbNcfY.s
+GNU assembler version 2.38 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.38
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'a.'
+ /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cclx7mGg.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. /tmp/ccAOJYkw.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'a.'
+----
+
+Как видно из команды, компилятор компилирует `hello.cpp` и выводит ассемблерный код в файл `/tmp/ccwbNcfY.s`. 
+Во время компиляции `cc1plus` должен найти заголовочный файл `iostream`, который присутствует в `/usr/include/c++/11`.
+
+Далее идет вызов ассемблера. 
+Он считывает вывод компилятора (т. е. `/tmp/ccWH0EQc.s`) и выводит объектный файл `/tmp/ccAOJYkw.o`. 
+Ассемблер не имеет никаких зависимостей:
+
+[source,bash]
+----
+as -v --64 -o /tmp/ccAOJYkw.o /tmp/ccwbNcfY.s
+----
+
+И, наконец, у нас есть вызов компоновщика. 
+Компоновщик `collect2` считывает выходные данные ассемблера `/tmp/ccAOJYkw.o`, объектный файл, и выводит исполняемый файл. 
+Компоновщик имеет много зависимостей.
+Наиболее интересными из них являются файлы поддержки времени выполнения, а именно `crt1.o`, `crti.o`, `crtendS.o`, `crtn.o` и стандартные библиотеки `libc`, `libgcc`, `libgcc_s`, `libm` и т. д. 
+Посмотрите, сможете ли вы определить, как эти зависимости передаются компоновщику. 
+Теперь компоновщику нужно знать, где находятся эти файлы на самом деле, драйвер компилятора g{pp} должен знать, где находятся эти файлы, чтобы он мог вызвать компоновщик с соответствующими библиотеками (см. флаги, начинающиеся с `-l`) и соответствующими путями (см. флаги, начинающиеся с `-L`).
+
+Итак, инструментарий компилятора -- это набор инструментов, вспомогательных библиотек и заголовочных файлов, которые помогают собрать программу из исходного кода в исполняемый файл, который может выполняться на компьютере. 
+Обратите внимание, что набор инструментов компилятора необходим для создания исполняемых файлов, но только его недостаточно. 
+Чего не хватает в цепочке инструментов, чтобы иметь «все», что необходимо для создания исполняемых программ, так это `sysroot`.
+
+=== Sysroot
+
+:link-ubuntu-gpp-aarch64: https://packages.ubuntu.com/ru/kinetic/g++-10-aarch64-linux-gnu
+
+Любой компилятор должен «знать», где находятся стандартные заголовочные файлы, стандартные библиотеки и среда выполнения. 
+Все они упакованы вместе для каждой платформы (например, arm64, x86) в каталоге с именем `sysroot`. 
+Когда мы компилируем программу, нам нужно передать путь к `sysroot`, чтобы компилятор знал, где искать стандартные заголовки во время компиляции и где искать общие библиотеки (`libc`, `libstdc++` и т. д.) во время компоновки.
+
+Обычно, когда мы компилируем программу для той же машины, компилятор использует стандартные заголовочные файлы, доступные в `/usr/include`, и библиотеки из `/usr/lib`. 
+Эти пути встроенны в исходный код самого компилятора, так что нам никогда не придется об этом думать. 
+Однако при создании собственного компилятора или при кросс-компиляции программ мы сообщаем компилятору, где находится `sysroot`, передавая флаг (например, `gcc --sysroot="/path/to/arm64/sysroot/usr" hello.cpp`). 
+Чаще всего предварительно упакованные кросс-компиляторы поставляются со сценарием/двоичным файлом, в который встроен путь `sysroot` (например, `aarch64-linux-gnu-gcc`) пакет {link-ubuntu-gpp-aarch64}[g{pp}-10-aarch64-linux-gnu (10.4.0-4ubuntu1~22.04cross1 и другие)].
+
+=== Инструментарий
+
+Помимо `sysroot`, инструментарий компилятора содержит различные двоичные файлы, помогающие в процессе компиляции. 
+В некоторых случаях сам компилятор входит в набор инструментов. 
+Ниже приведен список элементов, упакованных с набором инструментов: 
+
+* `binutils` (ассемблер, компоновщик и т.д.); 
+*различные компиляторы (gcc, g{pp} и т.д.);
+* C-библиотеки (glibc, uClibc и т.д.); 
+* Библиотеки поддержки времени выполнения (crtbegin.o, crtend.o и т. д.);
+* отладчик (gdb); 
+* стандартные заголовочные файлы C/C{pp} (`iostream`, `stdio.h` и т.д.);
+* стандартные библиотеки (`libstdc++`, `libm`, `libgcc`, `libunwind` и т.д.);
+* заголовочные файлы компилятора (`stdint.h`, `stdc-predef.h`);
+* библиотеки поддержки времени выполнения для инструментов отладки (`libasan`, `libubsan` и т. д.);
+
+*Примечание:* В предоставляемом инструментарии могут присутствовать не все из них, в зависимости от поставщика. 
+С более подробной информацией можно ознакомиться здесь: 
+
+* https://elinux.org/Toolchains[Toolchains] 
+* https://gcc.gnu.org/onlinedocs/gccint/Initialization.html[How Initialization Functions Are Handled (C runtime)]
+
+=== Кросс-компиляция
+
+Чтобы понять концепцию кросс-компиляции, давайте вернемся к определению компилятора. 
+Компилятор -- это программа, которая преобразует программу с одного языка на другой. 
+Но слово «компилятор» часто используется для обозначения программы, которая переводит программу на машинный язык для создания исполняемого файла, работающего на вычислительном устройстве. 
+Обычно компилятор используется для генерации машинного кода для той же машины, на которой работает сам компилятор. 
+Под одной и той же машиной мы подразумеваем одну и ту же архитектуру. 
+Например, компилятор, работающий на машине с `linux-x64`, компилирует программу на C{pp} и генерирует машинный код для той же машины с `linux-x64`. 
+Эта программа может работать на всех машинах `linux-x64`, если предоставляется аналогичная среда.
+
+Однако бывают ситуации, когда мы хотим сгенерировать двоичные файлы для машин другого типа, а не того, на котором запускается компилятор.
+Например, если целевая машина недостаточно мощная. 
+Это часто имеет место при создании двоичных файлов для встроенных устройств, мобильных приложений и т. д. 
+Кросс-компилятор создает двоичные файлы, которые будут работать на другом компьютере (целевом компьютере), а не на том, на котором работает сам компилятор (хост-компьютер). 
+Это немного более сложный процесс, так как он требует присутствия всех зависимостей целевой машины на хост-машине.
+
+Например, при компиляции простой программы `hello-world` для хост-компьютера используется заголовочный файл `stdio.h` на месте, подобном `/usr/include/stdio.h`. 
+Для создания кросс-компилируемой программы `hello-world` файл `stdio.h` будет находиться в другом `sysroot`. 
+Итак, вызов компилятора может выглядеть так:
+
+[source,bash]
+----
+gcc --sysroot=/path/to/aarch64/sysroot -march=armv8-a hello.c
+----
+
+:canadian-cross: footnote:[Примечание переводчика: приведённые в курсе описание и иллюстрация канадской сборки могут лишь запутать читателя, рекомендуется ознакомиться с ней отдельно.]
+
+Еще более запутанная система -- https://en.wikipedia.org/wiki/Cross_compiler#Canadian_Cross[канадская сборка]{canadian-cross}. 
+В ней участвуют два кросс-компилятора. 
+В этой настройке есть три машины A, B и C. 
+Кросс-компилятор в A (CA) сгенерирует другой кросс-компилятор (CB), который будет работать на B. 
+CB сгенерирует код для машины C.
+
+image::canadian_cross.png[title="Схематичный пример канадской сборки",caption="Рис. 1: ",alt="Канадская сборка"] 
+
+=== Введение в инструментарий GCC
+
+Популярный компилятор gcc поставляется вместе с инструментарием gcc. 
+Его можно загрузить с https://gcc.gnu.org/mirrors.html[зеркальных сайтов GCC]. 
+Чтобы загрузить предварительно скомпилированные двоичные файлы, готовые к использованию, перейдите на страницу 
+https://gcc.gnu.org/install/binaries.html[Установка GCC: двоичные файлы].
+
+Инструментарий содержит следующие каталоги верхнего уровня: 
+
+* bin
+* include
+* lib
+* libexec
+* share
+
+Папка `bin` содержит все исполняемые двоичные файлы, такие как компилятор C (gcc), компилятор C{pp} (g{pp}), компилятор Fortran (gfortran) и компилятор D (gdc). 
+В зависимости от дистрибутива он может содержать компилятор Go (gccgo). 
+Он также содержит набор других полезных инструментов, таких как `gcov`, `lto-dump` и т.д.
+
+Папка `include` содержит набор заголовочных файлов, которые включаются во время компиляции. 
+Например, заголовочные файлы C{pp}, такие как `iostream` и т.д. 
+Обратите внимание, что заголовочные файлы С, такие как `stdio.h`, не поставляются с инструментарием, потому что они являются частью `sysroot`.
+
+Папка `lib` содержит такие библиотеки, как `libstdc++`, `libatomic` и т. д. 
+Эти библиотеки могут использоваться компилятором gcc в процессе компиляции или могут использоваться как повторно используемый набор библиотек.
+
+Папка `libexec` содержит двоичные файлы, которые вызываются программами-драйверами (gcc, g{pp}, gdc). 
+Например, gcc вызывает `cc1` (компилятор C), `collect2` (компоновщик), `lto1` (оптимизатор времени компоновки) и т.д.
+
+В папке `share` содержится документация, которая может быть установлена в виде man-страниц, а также неосновной набор скриптов.
+
+==== Полезные ресурсы
+
+* https://gcc.gnu.org/onlinedocs/[Онлайн документация GCC]
+* https://www.cse.iitb.ac.in/grc/[Ресурсный центр GCC]
+* https://www.cse.iitb.ac.in/grc/index.php?page=gcc-pldi14-tut[Основные абстракции в GCC]
+* https://www.cse.iitb.ac.in/grc/index.php?page=videos[Видеозаписи лекций по основным абстракциям в GCC -2012]
+* https://www.youtube.com/watch?v=IlovhbAI7Cw&list=PLy-CGmBdq2VGjl56cyaEjxcAMyAvUKbCz[Лекция по внутреннему устройству компилятора в Индийском технологическом институте Бомбея [Часть 1]]
+* https://www.youtube.com/channel/UCQ4JGczdlU3ofHWf3NuCX8g/featured[GNU Tools Cauldron]
+
+==== Список рассылок
+
+* https://gcc.gnu.org/pipermail/gcc-help/[Архив Gcc-help]
+
+=== Введение в инструментарий LLVM
+
+Проект LLVM -- это коллекция модульных и переиспользуемых технологий компилятора и инструментария. 
+Предварительно собранные двоичные файлы инструментария LLVM можно загрузить со https://releases.llvm.org/download.html[страницы LLVM]. 
+Инструментарий также можно собрать из исходных файлов, следуя инструкциям со страницы https://llvm.org/docs/[документации]. 
+Инструментарий содержит следующие каталоги верхнего уровня: 
+
+* bin
+* include
+* lib
+* libexec
+* share
+
+Папка `bin` содержит все исполняемые двоичные файлы, такие как компилятор clang и набор других полезных инструментов, таких как clang-rename, clang-refactor.
+
+Папка `include` содержит набор заголовочных файлов, которые включаются во время компиляции. 
+Например, заголовочные файлы C{pp}, например, `iostream`. Обратите внимание, что заголовочные файлы C, такие как `stdio.h`, не поставляются с набором инструментов, потому что они являются частью `sysroot`. 
+Он также содержит заголовочные файлы, которые используются при использовании библиотек llvm для сборки инструментов.
+
+Папка `lib` содержит такие библиотеки, как `libc++`, `libc++abi`. 
+Они могут использоваться компилятором clang в процессе компиляции или могут использоваться как повторно используемый набор библиотек.
+
+Папка `libexec` содержит два скрипта Python, которые подходят только для использования статического анализатора `clang`.
+
+Папка `share` содержит документацию, которую можно установить в виде справочных страниц, и необязательный набор скриптов.
+
+==== Полезные ресурсы
+
+* https://llvm.org/docs/[Документация по инфраструктуре компилятора LLVM]
+* https://www.youtube.com/channel/UCv2_41bSAa5Y_8BacJUZfjQ[Канал LLVM на YouTube]
+
+==== Список рассылок
+
+* https://lists.llvm.org/pipermail/llvm-dev/[Архив llvm-dev]
