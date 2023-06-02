@@ -1,0 +1,21 @@
+name: Build
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        container: asciidoctor/docker-asciidoctor
+        env:
+            RESULT_PDF: Course.pdf
+        steps:
+            - uses: actions/checkout@v3
+            - name: Build pdf
+              run: make
+            - uses: actions/upload-artifact@v3
+              with:
+                name: Course
+                path: ${{env.RESULT_PDF}}
+                if-no-files-found: error
