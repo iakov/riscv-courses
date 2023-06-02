@@ -1,0 +1,27 @@
+name: Release
+
+on:
+    push:
+        tags:
+          - 'v*'
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        container: asciidoctor/docker-asciidoctor
+        env:
+            RESULT_PDF: Course.pdf
+        steps:
+            - uses: actions/checkout@v3
+            - name: Build pdf
+              run: make
+            - name: Release
+              run: |
+                gh release create ${{ github.ref_name}} -t "${{ env.NAME }}" ${{ env.FILES }}
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                NAME: "${{ github.ref_name}} RISC-V Toolchain and Compiler Optimization Techniques (LFD113x)"
+                FILES: ${{ env.RESULT_PDF }}
