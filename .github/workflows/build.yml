@@ -10,11 +10,11 @@ jobs:
         runs-on: ubuntu-latest
         container: asciidoctor/docker-asciidoctor
         env:
-            RESULT_NAME: 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_(LFD113x)_RU'
+            RESULT_NAME: 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_LFD113x_RU'
         steps:
             - uses: actions/checkout@v3
             - name: Build pdf
-              run: make RESULT_PDF=${{ env.RESULT_NAME }}.pdf
+              run: make 'RESULT_PDF=${{ env.RESULT_NAME }}.pdf'
             - uses: actions/upload-artifact@v3
               with:
                 name: ${{ env.RESULT_NAME }}

@@ -12,7 +12,7 @@ jobs:
     release:
         runs-on: ubuntu-latest
         env:
-            RESULT_NAME: 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_(LFD113x)_RU_${{ github.ref_name}}'
+            RESULT_NAME: 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_LFD113x_RU_${{ github.ref_name}}'
         steps:
             - uses: actions/checkout@v3
             - name: Pull Container
@@ -23,7 +23,7 @@ jobs:
                 docker run \
                     --rm -v '${{ github.workspace }}':/documents \
                     asciidoctor/docker-asciidoctor \
-                    make RESULT_PDF=${{ env.RESULT_NAME }}.pdf
+                    make 'RESULT_PDF=${{ env.RESULT_NAME }}.pdf'
             - name: Release
               run: |
                 gh release create ${{ github.ref_name}} -t '${{ env.NAME }}' '${{ env.RESULT_NAME }}.pdf'
