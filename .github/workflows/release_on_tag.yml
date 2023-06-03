@@ -27,7 +27,8 @@ jobs:
                     make RESULT_PDF='${{ env.RESULT_PDF }}'
             - name: Release
               run: |
-                gh release create ${{ github.ref_name}} -t '${{ env.NAME }}' '${{ env.RESULT_PDF }}'#'${{ env.ASSET_LABEL }}'
+                gh release create ${{ github.ref_name}} -t '${{ env.NAME }}' '${{ env.RESULT_PDF }}'#'${{ env.ASSET_LABEL }}' \
+                    || gh release upload --clobber ${{ github.ref_name}} '${{ env.RESULT_PDF }}'#'${{ env.ASSET_LABEL }}'
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 NAME: 'Перевод курса "RISC-V Toolchain and Compiler Optimization Techniques" (LFD113x) ${{ github.ref_name}}'
