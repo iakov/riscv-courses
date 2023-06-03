@@ -14,7 +14,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
             - name: Build pdf
-              run: make 'RESULT_PDF=${{ env.RESULT_NAME }}.pdf'
+              run: make RESULT_PDF='${{ env.RESULT_NAME }}.pdf'
             - uses: actions/upload-artifact@v3
               with:
                 name: ${{ env.RESULT_NAME }}
