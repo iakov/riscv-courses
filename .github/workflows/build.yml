@@ -10,7 +10,7 @@ jobs:
         runs-on: ubuntu-latest
         container: asciidoctor/docker-asciidoctor
         env:
-            RESULT_NAME: 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_LFD113x_RU'
+            RESULT_NAME: 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_(LFD113x)_RU'
         steps:
             - uses: actions/checkout@v3
             - name: Build pdf

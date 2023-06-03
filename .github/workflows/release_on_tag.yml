@@ -12,7 +12,7 @@ jobs:
     release:
         runs-on: ubuntu-latest
         env:
-            RESULT_NAME: 'RISC-V_Toolchain_and_Compiler_Optimization_Techniques_LFD113x_RU_${{ github.ref_name}}'
+            RESULT_PDF: 'RISC-V_Toolchain_and_Compiler_Optimization_Techniques_LFD113x_RU_${{ github.ref_name}}.pdf'
             ASSET_LABEL: 'Инструментарий и компиляторные оптимизации для RISC-V (LFD113x) RU ${{ github.ref_name}}'
         steps:
             - uses: actions/checkout@v3
@@ -24,10 +24,10 @@ jobs:
                 docker run \
                     --rm -v '${{ github.workspace }}':/documents \
                     asciidoctor/docker-asciidoctor \
-                    make 'RESULT_PDF=${{ env.RESULT_NAME }}.pdf'
+                    make RESULT_PDF='${{ env.RESULT_PDF }}'
             - name: Release
               run: |
-                gh release create ${{ github.ref_name}} -t '${{ env.NAME }}' '${{ env.RESULT_NAME }}.pdf'#'${{ env.ASSET_LABEL }}'
+                gh release create ${{ github.ref_name}} -t '${{ env.NAME }}' '${{ env.RESULT_PDF }}'#'${{ env.ASSET_LABEL }}'
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 NAME: 'Перевод курса "RISC-V Toolchain and Compiler Optimization Techniques" (LFD113x) ${{ github.ref_name}}'

@@ -12,7 +12,7 @@ RESULT_PDF = $(ROOT_ASCIIDOC_NAME).pdf
 all: $(RESULT_PDF)
 
 $(RESULT_PDF): $(ROOT_ASCIIDOC) $(CHAPTERS)
-	$(ASCIIDOCTOR_PDF) --trace --out-file=$@ $<
+	$(ASCIIDOCTOR_PDF) --trace --out-file='$@' '$<'
 
 .PHONY: clean
 clean:
