@@ -12,7 +12,7 @@ jobs:
     release:
         runs-on: ubuntu-latest
         env:
-            RESULT_PDF: Course.pdf
+            RESULT_NAME: 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_(LFD113x)_RU_${{ github.ref_name}}'
         steps:
             - uses: actions/checkout@v3
             - name: Pull Container
@@ -20,15 +20,13 @@ jobs:
                 docker pull asciidoctor/docker-asciidoctor:latest
             - name: Build pdf
               run: |
-                docker run --rm -v "${{ github.workspace }}":/documents asciidoctor/docker-asciidoctor make
-            - uses: actions/upload-artifact@v3
-              with:
-                name: Course
-                path: ${{ env.RESULT_PDF }}
-                if-no-files-found: error
+                docker run \
+                    --rm -v '${{ github.workspace }}':/documents \
+                    asciidoctor/docker-asciidoctor \
+                    make RESULT_PDF=${{ env.RESULT_NAME }}.pdf
             - name: Release
               run: |
-                gh release create ${{ github.ref_name}} -t "${{ env.NAME }}" ${{ env.RESULT_PDF }}
+                gh release create ${{ github.ref_name}} -t '${{ env.NAME }}' '${{ env.RESULT_NAME }}.pdf'
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                NAME: "${{ github.ref_name}} RISC-V Toolchain and Compiler Optimization Techniques (LFD113x)"
+                NAME: 'Перевод курса "RISC-V Toolchain and Compiler Optimization Techniques" (LFD113x) ${{ github.ref_name}}'
