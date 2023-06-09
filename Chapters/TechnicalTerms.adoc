@@ -1,35 +1,36 @@
 [#section-terms]
+[glossary]
 == Список терминов
 
-* _toolchain_ -- инструментарий, набор инструментов
-* _high-level/low-level languages_ -- языки высокого/низкого уровня
-* _static analysis_ -- статический анализ
-* _instrumentation_ -- инструментирование
-* _introspection_ -- интроспекция
-* _compiler-driver_ ­-- драйвер компилятора
-* _bottleneck_ -- узкое место
-* _runtime profile_ -- профиль времени выполнения
-* _loop unrolling_ -- развертывание циклов
-* _inlining_ -- встраивание функций или инлайнинг
-* _instruction scheduling_ -- планирование инструкций
-* _register allocation_ -- распределение регистров
-* _benchmark_ -- тест производительности
-* _stack frame_ -- кадр стека
-* _buffer overflow_ -- переполнение буфера
-* _coverage file_ -- файл покрытия
-* _code layout_ -- размещение кода
-* _sampling profiler_ -- семплирующий профилятор
-* _call site devirtualization_ -- девиртуализация вызовов
-* _instantiate_ -- инстанцировать
-* _dead code_ -- мертвый код
-* _comprehensive test suite_ -- комплексный набор тестов
-* _rich performance profiles_ -- расширенные профили производительности
-* _ELF targets_ -- целевые платформы ELF
-* _sub-architecture_ -- субархитектура
-* _SoCs_ -- однокристальные системы
-* _print debugging_ -- отладочная печать
-* _sanitizer_ -- санитайзер
-* _assertion_ -- в курсе не переводится
-* _breakpoint_ -- точка останова или контрольная точка
-* _backtrace_ -- в курсе не переводится
-* _single-stepping instructions_ -- пошаговые инстукции
+toolchain:: инструментарий, набор инструментов
+high-level/low-level languages:: языки высокого/низкого уровня
+static analysis:: статический анализ
+instrumentation:: инструментирование
+introspection:: интроспекция
+compiler-driver:: драйвер компилятора
+bottleneck:: узкое место
+runtime profile:: профиль времени выполнения
+loop unrolling:: развертывание циклов
+inlining:: встраивание функций или инлайнинг
+instruction scheduling:: планирование инструкций
+register allocation:: распределение регистров
+benchmark:: тест производительности
+stack frame:: кадр стека
+buffer overflow:: переполнение буфера
+coverage file:: файл покрытия
+code layout:: размещение кода
+sampling profiler:: семплирующий профилятор
+call site devirtualization:: девиртуализация вызовов
+instantiate:: инстанцировать
+dead code:: мертвый код
+comprehensive test suite:: комплексный набор тестов
+rich performance profiles:: расширенные профили производительности
+ELF targets:: целевые платформы ELF
+sub-architecture:: субархитектура
+SoCs:: однокристальные системы
+print debugging:: отладочная печать
+sanitizer:: санитайзер
+assertion:: в курсе не переводится
+breakpoint:: точка останова или контрольная точка
+backtrace:: в курсе не переводится
+single-stepping instructions:: пошаговые инстукции

@@ -3,6 +3,8 @@
 :doctype: book
 :toc: macro
 :toc-title: Содержание
+:chapter-signifier: Глава
+:figure-caption: Рисунок
 
 Данные материалы являются переводом курса https://training.linuxfoundation.org/training/risc-v-toolchain-and-compiler-optimization-techniques-lfd113x/[RISC-V Toolchain and Compiler Optimization Techniques (LFD113x)], распространяемого под лицензией https://creativecommons.org/licenses/by/4.0/[CC BY 4.0].
 
@@ -13,6 +15,7 @@ toc::[]
 :imagesdir: images
 :pp: ++
 
+:sectnums:
 include::Chapters/Chapter1.adoc[Глава 1. Инструментарий компилятора]
 
 include::Chapters/Chapter2.adoc[Глава 2. Введение в компиляторные оптимизации]
