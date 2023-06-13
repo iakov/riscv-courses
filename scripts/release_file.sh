@@ -21,6 +21,7 @@ if [ "$TAG" == "" ]; then
     usage
     exit 1
 fi
+shift
 
 FILE=""
 
