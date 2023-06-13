@@ -10,13 +10,14 @@ jobs:
         runs-on: ubuntu-latest
         container: asciidoctor/docker-asciidoctor
         env:
-            RESULT_NAME: 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_(LFD113x)_RU'
+            RESULT_NAME: 'Переводы курсов'
+            BUILD_DIRECTORY: 'build'
         steps:
             - uses: actions/checkout@v3
-            - name: Build pdf
-              run: make RESULT_PDF='${{ env.RESULT_NAME }}.pdf'
+            - name: Build all courses
+              run: ./scripts/build_all.sh -o '${{ env.BUILD_DIRECTORY }}'
             - uses: actions/upload-artifact@v3
               with:
                 name: ${{ env.RESULT_NAME }}
-                path: ${{ env.RESULT_NAME }}.pdf
+                path: ${{ env.BUILD_DIRECTORY }}
                 if-no-files-found: error
