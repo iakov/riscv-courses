@@ -1,0 +1,54 @@
+В данном репозитории находятся переводы курсов
+
+* https://training.linuxfoundation.org/training/risc-v-toolchain-and-compiler-optimization-techniques-lfd113x/[LFD113x (RISC-V Toolchain and Compiler Optimization Techniques)]
+
+== Сборка артефактов курсов
+
+Для сборки `.pdf` из `.adoc` файлов используется https://docs.asciidoctor.org/pdf-converter/latest/[asciidoctor-pdf].
+
+Если `asciidoctor-pdf` не установлен локально, можно воспользоваться Docker-образом `asciidoctor/docker-asciidoctor`.
+Тогда все описанные ниже команды можно выполнить в Docker-контейнере так:
+
+[source,shell]
+----
+docker run --rm \
+    --user="$(id -u):$(id -g)" \
+    -v "$(pwd)":/documents/ \
+    asciidoctor/docker-asciidoctor <команда>
+----
+
+Чтобы выполнить сборку текста курса, необходимо запустить скрипт `./scripts/build_course.sh`, передав ему имя собираемого курса.
+Команда
+
+[source,shell]
+----
+./scripts/build_course.sh LFD113x-RU
+----
+
+выполнит сборку файла `Course.pdf` в директории с курсом (`./LFD113x-RU`)
+
+Чтобы задать имя создаваемого файла используется опция (`-o` или `--out`)
+
+[source,shell]
+----
+./scripts/build_course.sh --out LFD113x_RU.pdf LFD113x-RU
+----
+
+== Добавление нового курса
+
+Каждый курс лежит в папке с именем, задающем его название (рекомендуется использовать код курса).
+
+В папке должен быть _Makefile_ для сборки артефактов. Сборка должна осуществляться целью по умолчанию.
+Также должна быть возможность переопределить переменную `RESULT_PDF` при вызове (используется скриптом `./scripts/build_course.sh`).
+Пример -- link:./LFD113x-RU/Makefile[LFD113x-RU/Makefile]
+
+Также для курса необходимо добавить строку с его описанием в файл link:./Courses.csv[Courses.csv].
+В этой строке должны быть _имя курса_, _имя собранного файла_ (рекомендуется использование только символов ASCII) и _текст для отображения в релизе GitHub_, разделённые запятыми.
+
+Пример:
+[source]
+----
+LFD113x-RU,RISC-V_Toolchain_and_Compiler_Optimization_Techniques_LFD113x_RU,Инструментарий и компиляторные оптимизации для RISC-V (LFD113x) RU
+----
+
+
