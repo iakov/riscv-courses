@@ -27,7 +27,7 @@ jobs:
                     ./scripts/build_all.sh -o '${{ env.BUILD_DIRECTORY }}' -s '${{ github.ref_name}}'
             - name: Release all courses assets
               run: |
-                ./scripts/build_all.sh '${{ github.ref_name}}' \
+                ./scripts/release_all.sh '${{ github.ref_name}}' \
                     -o '${{ env.BUILD_DIRECTORY }}' \
                     -s '${{ github.ref_name}}' \
                     '${{ env.RELEASE_TITLE }}'
