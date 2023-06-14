@@ -1,0 +1,285 @@
+[#section-porting]
+== Портирование приложений FreeRTOS на процессоры RISC-V
+
+В этой главе описывается, как FreeRTOS может быть перенесена на процессор RISC-V.
+Это пошаговое справочное руководство.
+
+Это руководство начинается с объяснения того, как получить необходимые файлы для портирования FreeRTOS и какие файлы нужно отредактировать для соответствия требованиям процессора RISC-V.
+Затем мы рассмотрим, как эти файлы интегрируются в проект. В завершение главы мы демонстрируем, как скомпилировать и запустить портированное приложение на процессоре RISC-V в эмуляции.
+
+К концу этой главы вы должны уметь:
+
+* Перечислять шаги, связанные с получением необходимых файлов для порта FreeRTOS.
+* Перечислять шаги, связанные с редактированием необходимых файлов для процессора RISC-V.
+* Интегрировать файлы в требуемый проект.
+* Компилировать и запускать портированную версию на процессоре RISC-V.
+* Использовать встроенный тест согласованности FreeRTOS.
+
+=== Требования для переноса FreeRTOS на процессоры RISC-V
+
+==== Особенности портированной версии для RISC-V
+
+FreeRTOS уже портирована на различные платформы RISC-V.
+Ниже приведены функции портированной на RISC-V версии, которые были реализованы:
+
+* Включает порты для компиляторов GCC и IAR.
+* Поддерживает целочисленное выполнение в 32- и 64-битовом машинном режиме.
+* Реализует отдельный стек прерываний для уменьшения размера стека оперативной памяти.
+* Служит базовым портом, который можно использовать для переноса любых расширений архитектуры, специфичных для реализации RISC-V.
+
+==== Требования к исходным файлам FreeRTOS
+
+Необходимые файлы RTOS — это файлы, перечисленные в главе <<section-freertos>>.
+Либо выберите необходимые исходные файлы, либо выберите проект примера RISC-V и используйaте его в качестве отправной точки.
+
+Для всех портов RISC-V, требующих расширения архитектуры (что характерно для большинства чипов RISC-V), требуется один дополнительный файл.
+Этот дополнительный заголовочный файл называется `freertos_risc_v_chip_specific_extensions.h`.
+Существует одна реализация этого заголовочного файла для каждого поддерживаемого расширения архитектуры, причем все реализации расположены в подкаталогах каталога `+/FreeRTOS/Source/Portable/[compiler]/RISC-V/chip_specific_extensions+`, где `[compiler]` -- используемый компилятор.
+
+Чтобы включить файл для вашего процессора, включите путь к нему в путь включения ассемблера.
+Например:
+
+* Если ваш чип реализует базовую архитектуру RV32I или RV64I, включает локальный прерыватель Core Local Interrupter (CLINT), но не имеет других регистровых расширений, то добавьте `+/FreeRTOS/Source/Portable/[compiler]/RISC-V/chip_specific_extensions/RV32I_CLINT_no_extensions+` в путь `include` ассемблера.
+* Если ваш чип использует ядро PULP RI5KY, реализованное на плате RV32M1RM Vega, которое включает шесть дополнительных регистров и не включает CLINT, то добавьте `+/FreeRTOS/Source/Portable/[compiler]/RISC-V/chip_specific_extensions/Pulpino_Vega_RV32M1RM+` в путь `include` ассемблера.
+
+Если ни одно из этих расширений не подходит для вашей реализации и у вас есть свои собственные расширения, то выполните действия, перечисленные в следующей статье: https://www.freertos.org/Using-FreeRTOS-on-RISC-V.html#PORTING_FREERTOS_TO_RISC_V[«Перенос на новые 32-битные или 64-битные реализации RISC-V»].
+Это позволит вам создать файл `freertos_risc_v_chip_specific_extensions.h`, который будет соответствовать вашей конкретной архитектуре процессора.
+В приведенной выше ссылке описывается список параметров, которые необходимо определить для процессорных расширений, чтобы FreeRTOS могла обрабатывать эти расширения соответствующим образом.
+
+==== Настройки FreeRTOSConfig.h
+
+Обратите внимание, что информация в этом разделе взята с сайта FreeRTOS.
+
+Параметры `configMTIME_BASE_ADDRESS` и `configMTIMECMP_BASE_ADDRESS` должны быть определены в `FreeRTOSConfig.h`.
+Если целевой RISC-V чип включает машинный таймер (MTIME), то установите `configMTIME_BASE_ADDRESS` в базовый адрес MTIME, а `configMTIMECMP_BASE_ADDRESS` в адрес регистра сравнения MTIME (MTIMECMP).
+В противном случае установите оба значения в 0.
+
+Например, если базовый адрес MTIME равен `0x2000BFF8`, а адрес MTIMECMP равен `0x20004000`, то добавьте следующие строки в `FreeRTOSConfig.h`:
+
+[source,c]
+----
+#define configMTIME_BASE_ADDRESS ( 0x2000BFF8UL )
+
+#define configMTIMECMP_BASE_ADDRESS ( 0x20004000UL )
+----
+
+Если MTIME нет, то добавьте следующие строки в `FreeRTOSConfig.h`:
+
+[source,c]
+----
+#define configMTIME_BASE_ADDRESS ( 0 )
+
+#define configMTIMECMP_BASE_ADDRESS ( 0 )
+----
+
+==== Настройка стека прерываний
+
+Порт FreeRTOS RISC-V использует выделенный стек прерываний перед вызовом любых функций C из маршрута обслуживания прерываний (ISR).
+
+Память для использования в качестве стека прерываний может быть определена в скрипте компоновщика или объявлена на уровне портов FreeRTOS как статически выделенный массив.
+
+Первый метод предпочтительнее для микроконтроллеров (MCU) с ограниченным объемом памяти, поскольку он позволяет использовать стек планировщика,
+используемый `main()` до запуска планировщика, в качестве стека прерываний, когда он больше не используется для первоначальной цели после запуска планировщика.
+
+Чтобы использовать статически выделенный массив в качестве стека прерываний, определите `configISR_STACK_SIZE_WORDS` в `FreeRTOSConfig.h` как размер выделяемого стека прерываний.
+Обратите внимание, что размер определяется в словах, а не в байтах.
+Например, чтобы использовать статически выделяемый стек прерываний размером 500 слов (2000 байт на RV32, где каждое слово равно 4 байтам), добавьте следующее в `FreeRTOSConfig.h`:
+
+[source,c]
+----
+#define configISR_STACK_SIZE_WORDS ( 500 )
+----
+
+Чтобы определить стек прерываний в сценарии компоновщика (обратите внимание, что на момент написания этой статьи, июнь 2022 года, этот метод поддерживается только в порте GCC),
+объявите переменную компоновщика под названием `+__freertos_irq_stack_top+`, которая будет содержать самый высокий адрес стека прерываний, а также убедитесь, что `configISR_STACK_SIZE_WORDS` не определена.
+
+Использование этого метода требует редактирования скрипта компоновщика.
+Если вы не знакомы со скриптами компоновщика, то важно знать (по крайней мере, при использовании GCC), что «.» -- это так называемый _счетчик расположения_,
+который содержит значение адреса памяти в данный момент в скрипте компоновщика.
+Пример управления местоположением показан ниже.
+
+[source,c]
+----
+/* Define the start address and size of the two RAM regions not used by the linker. */
+
+#define                  ( ( uint8_t * ) 
+RAM2_START_ADDRESS       0x00020000 )
+#define RAM2_SIZE        ( 32 * 1024 )
+
+#define                  ( ( uint8_t * ) 
+RAM3_START_ADDRESS       0x00030000 )
+#define RAM3_SIZE        ( 32 * 1024 )
+
+/* Declare an array that will be part of the heap used by heap_5. The array will be placed in RAM1 by the linker. */
+
+#define RAM1_HEAP_SIZE ( 30 * 1024 )
+static uint8_t ucHeap[ RAM1_HEAP_SIZE ];
+
+/* Create an array of HeapRegion_t definitions. The HeapRegion_t structures must appear in start address order, with the structure that contains the lowest start address appearing first. */
+
+const HeapRegion_t xHeapRegions[] =
+{
+{ ucHeap, RAM1_HEAP_SIZE },
+{ RAM2_START_ADDRESS, RAM2_SIZE },
+{ RAM3_START_ADDRESS, RAM3_SIZE },
+{ NULL, 0 } /* Marks the end of the array. */
+};
+----
+
+==== Необходимые параметры компилятора и ассемблера
+
+В этом разделе подробно описаны опции компилятора и ассемблера, которые должны быть установлены в командной строке перед выполнением.
+Это необходимо, поскольку различные реализации RISC-V предоставляют различные обработчики прерываний для своих внешних прерываний.
+Установка опций, соответствующих данной реализации, указывает ядру FreeRTOS, какой обработчик внешних прерываний ему нужно вызвать.
+
+Чтобы задать обработчик внешнего прерывания, необходимо определить следующие параметры:
+
+* Найдите имя обработчика внешнего прерывания, предоставляемого в рамках программы выполнения RISC-V поставщиком микросхемы.
+Обработчик прерывания должен иметь один параметр, которым является значение регистра причины RISC-V в момент возникновения прерывания.
+Прототип обработчика прерывания должен иметь вид: `+void ext_int_handler (uint32_t cause);+`
+* Определите макрос ассемблера (обратите внимание, что это макрос ассемблера, а не макрос компилятора) под названием `portasmHANDLE_INTERRUPT`, равный имени обработчика прерываний.
+Если вы используете GCC, этого можно добиться, добавив в командную строку ассемблера следующее, предполагая, что обработчик прерываний называется `+ext_int_handler: -DportasmHANDLE_INTERRUPT=ext_int_handler+`.
+
+Также не забудьте добавить заголовочный файл, специфичный для реализации процессора RISC-V, в путь включения ассемблера.
+
+==== Установка обработчика ловушек FreeRTOS
+
+Последний необходимый шаг — установка обработчика прерываний FreeRTOS, `freertos_risc_v_trap_handler()`.
+Это центральная точка входа для всех прерываний и исключений.
+Обработчик ловушек FreeRTOS вызывает обработчик внешних прерываний, когда источником ловушки является внешнее прерывание (подробнее см. по следующей ссылке: https://www.freertos.org/Using-FreeRTOS-on-RISC-V.html#GCC_COMMAND_LINE_OPTIONS[обработчик внешних прерываний]).
+
+Чтобы установить обработчик ловушек:
+
+* Если используемое ядро RISC-V включает CLINT, то `portasmHAS_SIFIVE_CLINT` должен быть установлен в 1 в `freertos_risc_v_chip_specific_extensions.h`, что приводит к автоматической установке `freertos_risc_v_trap_handler()`.
+В этом случае никаких дополнительных действий не требуется.
+* Во всех остальных случаях необходимо установить `freertos_risc_v_trap_handler()` вручную.
+Это можно сделать, отредактировав код запуска, предоставленный вашим поставщиком микросхем.
+
+_*Примечание*: если чип RISC-V использует контроллер векторных прерываний, то установите `freertos_risc_v_trap_handler()` в качестве обработчика для каждого вектора._
+
+=== Проверка портированной версии FreeRTOS на RISC-V
+
+==== Пример перенесенной структуры FreeRTOS
+
+Ниже приведена структура файлов FreeRTOS, которые были перенесены на RISC-V (как извлечено из примера `Makefile`):
+
+[source,makefile]
+----
+CPPFLAGS = \
+     -D__riscv_float_abi_soft \
+     -DportasmHANDLE_INTERRUPT=handle_trap \
+     -I . -I ../Common/include \
+     -I $(RTOS_SOURCE_DIR)/include \
+     -I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V \
+     -I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/chip_specific_extensions/RV32I_CLINT_no_extensions
+CFLAGS = -march=rv32ima -mabi=ilp32 -mcmodel=medany \
+     -Wall \
+     -fmessage-length=0 \
+     -ffunction-sections \
+     -fdata-sections \
+     -fno-builtin-printf
+ASFLAGS = -march=rv32ima -mabi=ilp32 -mcmodel=medany
+LDFLAGS = -nostartfiles -Tfake_rom.lds \
+     -Xlinker --gc-sections \
+     -Xlinker --defsym=__stack_size=300
+
+ifeq ($(DEBUG), 1)
+    CFLAGS += -Og -ggdb3
+else
+    CFLAGS += -O2
+endif
+
+SRCS = main.c main_blinky.c riscv-virt.c ns16550.c \
+     $(DEMO_SOURCE_DIR)/EventGroupsDemo.c \
+     $(DEMO_SOURCE_DIR)/TaskNotify.c \
+     $(DEMO_SOURCE_DIR)/TimerDemo.c \
+     $(DEMO_SOURCE_DIR)/blocktim.c \
+     $(DEMO_SOURCE_DIR)/dynamic.c \
+     $(DEMO_SOURCE_DIR)/recmutex.c \
+     $(RTOS_SOURCE_DIR)/event_groups.c \
+     $(RTOS_SOURCE_DIR)/list.c \
+     $(RTOS_SOURCE_DIR)/queue.c \
+     $(RTOS_SOURCE_DIR)/stream_buffer.c \
+     $(RTOS_SOURCE_DIR)/tasks.c \
+     $(RTOS_SOURCE_DIR)/timers.c \
+     $(RTOS_SOURCE_DIR)/portable/MemMang/heap_4.c \
+     $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/port.c
+
+ASMS = start.S \
+     $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/portASM.S
+----
+
+==== Использование FreeRTOS на RISC-V
+
+После завершения переноса на процессор пользователь может свободно создавать приложения, использующие FreeRTOS для управления потоком управления в программе.
+Ниже приведен простой пример приложения, которое поставляется с установкой FreeRTOS для проверки правильности переноса.
+
+Это тестовое приложение называется программой `blinky`; оно имитирует мигание светодиода в целевой системе. Она включает две задачи FreeRTOS и планировщик, работающий между ними.
+Есть также очередь, которая используется для передачи управления между задачами.
+Поскольку у нас нет платы, в коде используются операторы отображения, чтобы продемонстрировать результат переключения потока выполнения между двумя задачами.
+
+Следующий фрагмент кода показывает пример приложения и вывод, когда программа выполняется на процессоре:
+
+[source,c]
+----
+int main_blinky( void )
+{
+     vSendString( "Hello FreeRTOS!" );
+     /* Create the queue. */
+     xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
+     if( xQueue != NULL )
+     {
+          /* Create and start the two tasks */
+          xTaskCreate( prvQueueReceiveTask, "Rx",
+                          configMINIMAL_STACK_SIZE * 2U, NULL,
+                          mainQUEUE_RECEIVE_TASK_PRIORITY, NULL );
+          xTaskCreate( prvQueueSendTask, "Tx",
+                          configMINIMAL_STACK_SIZE * 2U, NULL,
+                          mainQUEUE_SEND_TASK_PRIORITY, NULL );
+     }
+     /* Start the scheduler. */
+     vTaskStartScheduler();
+     return 0;
+}
+----
+
+Настройка и вывод приведенного выше примера показаны в видеоуроке, представленном далее.
+
+==== Пример сборки и запуска
+
+Далее мы рассмотрим, как собрать и запустить результат портирования на RISC-V в QEMU.
+
+Первым шагом будет выбор примера RISCV64 для RISC-V QEMU.
+Для этого возьмём пример из директории `+/FreeRTOS/Demo/RISC-V-Qemu-virt_GCC+`.
+
+Для запуска понадобятся:
+
+* Инструментарий GNU RISC-V (можно скачать инструментарий RISC_V от SiFive по https://www.sifive.com/software[ссылке])
+* qemu-riscv32-system
+* ОС Linux
+
+Настройка инструментария
+
+[source,shell]
+----
+export PATH=<путь до инструментария>/bin:$PATH
+----
+
+Сборка примера
+
+[source,shell]
+----
+make
+----
+
+Запуск примера
+
+[source,shell]
+----
+qemu-system-riscv32 -nographic -machine virt -net none \
+  -chardev stdio,id=con,mux=on -serial chardev:con \
+  -mon chardev=con,mode=readline -bios none \
+  -smp 4 -kernel ./build/RTOSDemo.axf
+----
+
+Более подробное описание сборки и запуска примера можно найти в файле `+/FreeRTOS/Demo/RISC-V-Qemu-virt_GCC/Readme.md+`.

@@ -1,0 +1,36 @@
+= Создание приложений на базе RISC-V и FreeRTOS
+:source-highlighter: rouge
+:doctype: book
+:toc: macro
+:toc-title: Содержание
+:chapter-signifier: Глава
+:figure-caption: Рисунок
+:table-caption: Таблица
+:stem: latexmath
+:imagesdir: images
+
+Данные материалы являются переводом курса https://training.linuxfoundation.org/training/building-applications-with-risc-v-and-freertos-lfd112x/[Building Applications with RISC-V and FreeRTOS (LFD112x)], распространяемого под лицензией https://creativecommons.org/licenses/by/4.0/[CC BY 4.0].
+
+// Перед прочтением курса рекомендуем читалю ознакомиться с используемыми в нём терминами и их переводами, список которых можно найти в разделе <<section-terms>>.
+
+toc::[]
+
+:imagesoutdir: images
+:pp: ++
+
+:sectnums:
+include::Chapters/Chapter1.adoc[Глава 1. Введение в RTOS и встраиваемые системы]
+
+:sectnumlevels: 2
+include::Chapters/Chapter2.adoc[Глава 2. FreeRTOS]
+
+:sectnumlevels: 3
+include::Chapters/Chapter3.adoc[Глава 3. Перенос FreeRTOS на другую программную или аппаратную платформу]
+
+include::Chapters/Chapter4.adoc[Глава 4. Процессоры RISC-V]
+
+include::Chapters/Chapter5.adoc[Глава 5. Портирование приложений FreeRTOS на процессоры RISC-V]
+
+include::Chapters/Chapter6.adoc[Глава 6. Создание приложений под FreeRTOS и RISC-V]
+
+// include::Chapters/TechnicalTerms.adoc[Список терминов]

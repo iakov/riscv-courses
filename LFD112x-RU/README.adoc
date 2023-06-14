@@ -1,0 +1,2 @@
+Представленные в данной директории материалы являются переводом курса
+https://training.linuxfoundation.org/training/building-applications-with-risc-v-and-freertos-lfd112x/[Building Applications with RISC-V and FreeRTOS (LFD112x)], распространяемого под лицензией https://creativecommons.org/licenses/by/4.0/[CC BY 4.0].

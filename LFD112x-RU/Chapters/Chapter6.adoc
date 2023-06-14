@@ -1,0 +1,250 @@
+== Создание приложений под FreeRTOS и RISC-V
+
+В последней главе этого курса мы рассмотрим процесс создания простого приложения FreeRTOS для процессора RISC-V, а затем скомпилируем и запустим наше приложение с помощью инструментария RISC-V.
+Мы закончим главу описанием различных сложных приложений, которые уже являются частью платформы FreeRTOS.
+
+К концу этой главы вы будете в силах:
+
+* Объяснять этапы создания и запуска приложения FreeRTOS.
+* Создавать простые приложения.
+* Компилировать и запускать приложения.
+* Понимать процесс создания более сложных приложений
+
+=== Этапы создания приложения FreeRTOS
+
+==== Инструкции
+
+Давайте рассмотрим шаги, необходимые для создания приложения FreeRTOS.
+
+===== Шаг 1:
+
+Начните со списка файлов и настроек, представленных в главе <<section-freertos>>.
+
+===== Шаг 2:
+
+Определите требования к приложению.
+После определения требований к приложению убедитесь, что следующие детали также определены:
+
+* Необходимые задачи для приложения.
+* Взаимодействие между задачами.
+* Зависимости между задачами:
+** зависимости от данных
+** зависимости управления
+* Требования к отклику в реальном времени для задач в приложении.
+
+После их определения разработчик приложения может планировать использование либо одного файла, либо нескольких файлов для определения и создания приложения.
+
+===== Шаг 3:
+
+Начните определять задачи в файлах по мере необходимости.
+Все задачи должны быть определены перед запуском планировщика FreeRTOS.
+
+Пример определения задачи:
+
+[source,c]
+----
+xTaskCreate(
+     /* Pointer to the function that implements the task. */
+     vTaskCode,
+     /* Name of the task. */
+     "Demo task",
+     /* The size of the stack that should be created for the task. This is defined in words, not bytes. */
+     STACK_SIZE,
+     /* A reference to xParameters is used as the task parameter. This is cast to a void * to prevent compiler warnings. */
+     (void*) &xParameter,
+     /* The priority to be assigned to the newly created task. */
+     TASK_PRIORITY,
+     /* The handle to the created task will be placed into xHandle parameter as the output of the xTaskCreate function. */
+     &xHandle
+)
+----
+
+Более подробную информацию о создании задач см. в https://www.freertos.org/Documentation/RTOS_book.html[справочном руководстве FreeRTOS], доступном на веб-сайте FreeRTOS.
+
+Добавьте дополнительные задачи, если это необходимо для приложения.
+Когда все задачи определены, можно запускать планировщик.
+
+===== Шаг 4:
+
+Скомпилируйте код с помощью установленного компилятора RISC-V и запустите приложение в QEMU.
+Позже вы сможете портировать его на выбранное вами оборудование.
+
+=== Создание простого приложения
+
+==== Описание примера приложения
+
+Ниже приводится описание упрощенного образца приложения.
+На основе этого описания мы создадим требования и построим приложение.
+
+Есть два входа, которые поступают в систему из двух внешних источников.
+Назовем эти входы `In1` и `In2`.
+Имеется один выход, `Out1`, размер которого составляет два бита.
+
+`In1` может менять свое состояние каждые 10 мс, а `In2` может менять свое состояние каждые 20 мс.
+Исходя из значений `In1` и `In2`, поведение `Out1` определено ниже:
+
+* Если In1 *высокий*, бит 0 Out1 *высокий*; если In1 *низкий*, бит 0 Out1 *низкий*
+* Если In2 *высокий*, бит 1 Out1 *высокий*; если In2 *низкий*, бит 1 Out1 *низкий*
+
+Для этого приложения необходимо три задачи: две для сбора входных данных и одна для управления выходом.
+Поэтому мы определим три задачи в главной функции.
+
+Ниже приводится одна из возможных реализаций двух задач для сбора входных данных:
+
+[source,c]
+----
+static void prvQueueSendTask1( void *pvParameters )
+{
+     TickType_t xNextWakeTime;
+     const unsigned long ulValueToSend = 100UL;
+     const char * const pcMessage1 = "Transfer1";
+     const char * const pcMessage2 = "Transfer2";
+
+     /* Remove compiler warning about unused parameter. */
+     ( void ) pvParameters;
+
+     /* Initialize xNextWakeTime; this only needs to be done once. */
+     xNextWakeTime = xTaskGetTickCount();
+
+     for( ;; )
+     {
+
+           char buf[40];
+
+           sprintf( buf, "%d: %s: %s", xGetCoreID(),
+                      pcTaskGetName( xTaskGetCurrentTaskHandle() ),
+                      pcMessage1 );
+           vSendString( buf );
+
+           /* Place this task into Blocked state until it is time to run again. */
+           vTaskDelayUntil( &xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS1 );
+
+           /* Send input of 100UL to the queue, causing the queue to
+           receive the task to unblock and toggle the LED. Since 0 is
+           used as the block time, the sending operation will not block;
+           it shouldn't need to block, as the queue should always be
+           empty at this point in the code. */
+           xQueueSend( xQueue, &ulValueToSend, 0U );
+     }
+}
+
+static void prvQueueSendTask2( void *pvParameters )
+{
+
+     TickType_t xNextWakeTime;
+     const unsigned long ulValueToSend = 200UL;
+     const char * const pcMessage1 = "Transfer1";
+     const char * const pcMessage2 = "Transfer2";
+
+     /* Remove compiler warning about unused parameter. */
+     ( void ) pvParameters;
+
+     /* Initialize xNextWakeTime; this only needs to be done once. */
+     xNextWakeTime = xTaskGetTickCount();
+
+     for( ;; )
+     {
+
+           char buf[40];
+
+           sprintf( buf, "%d: %s: %s", xGetCoreID(),
+                      pcTaskGetName( xTaskGetCurrentTaskHandle() ),
+                      pcMessage2 );
+           vSendString( buf );
+
+           /* Place this task into Blocked state until it is time to run again. */
+           vTaskDelayUntil( &xNextWakeTime,mainQUEUE_SEND_FREQUENCY_MS2 );
+
+           /* Send input of 200UL to the queue, causing the queue to
+           receive the task to unblock and toggle the LED. Since 0 is
+           used as the block time, the sending operation will not block;
+           it shouldn't need to block, as the queue should always be
+           empty at this point in the code. */
+           xQueueSend( xQueue, &ulValueToSend, 0U );
+     }
+}
+----
+
+Задача для управления выходом может быть смоделирована следующим образом:
+
+[source,c]
+----
+static void prvQueueReceiveTask( void *pvParameters )
+{
+
+     unsigned long ulReceivedValue;
+     const unsigned long ulExpectedValue1 = 100UL;
+     const unsigned long ulExpectedValue2 = 200UL;
+     const char * const pcMessage1 = "Blink1";
+     const char * const pcMessage2 = "Blink2";
+     const char * const pcFailMessage = "Unexpected value received\r\n";
+
+     /* Remove compiler warning about unused parameter. */
+     ( void ) pvParameters;
+
+     for( ;; )
+     {
+
+           char buf[40];
+
+           /* Wait until something arrives in the queue; this task will
+           block indefinitely, provided that INCLUDE_vTaskSuspend is set
+           to 1 in FreeRTOSConfig.h. */
+           xQueueReceive( xQueue, &ulReceivedValue, portMAX_DELAY );
+
+           /* To get here, something must have been received from the queue – but is it the expected value? If it is, toggle the LED. */
+           if( ulReceivedValue == ulExpectedValue1 )
+           {
+                sprintf( buf, "%d: %s: %s", xGetCoreID(),
+                           pcTaskGetName( xTaskGetCurrentTaskHandle() ),
+                           pcMessage1 );
+                vSendString( buf );
+
+                ulReceivedValue = 0U;
+           }
+           else if( ulReceivedValue == ulExpectedValue2 )
+           {
+                 sprintf( buf, "%d: %s: %s", xGetCoreID(),
+                            pcTaskGetName( xTaskGetCurrentTaskHandle() ),
+                            pcMessage2 );
+                 vSendString( buf );
+
+                 ulReceivedValue = 0U;
+           }
+           else
+           {
+                 vSendString( pcFailMessage );
+           }
+     }
+}
+----
+
+Поскольку этот пример выполняется на эмуляторе, мы реализовали входные задачи для обмена входами с выходной задачей через очередь.
+В реальной системе эти данные поступали бы через входные контакты.
+Аналогично, выходной сигнал в примере представлен в виде текстовых сообщений, тогда как в реальном приложении он будет иметь форму светящихся светодиодов.
+
+=== Компиляция и запуск приложения
+
+==== Как компилировать и запускать приложения
+
+Компиляция и запуск приложения могут быть выполнены с помощью скриптов или простых файлов `make`.
+
+Результат примера показан на изображении ниже:
+
+image:app_execution.png[Пример запуска приложения]
+
+Вывод для этого примера также можно увидеть в демонстрационном видео, представленном в главе <<section-porting>>.
+
+=== Создание более сложных приложений
+
+Общие шаги для создания более сложных приложений такие же, как и для создания простых приложений, а именно:
+
+[arabic]
+. Сбор требований к приложению.
+. Определение входов и выходов системы и их зависимостей.
+. Сбор всех требований к приложению, связанных со временем.
+
+После сбора вышеуказанной информации следующим шагом будет определение необходимых задач, очередей, семафоров и других соответствующих компонентов для приложения.
+Создайте приложение, используя эту информацию, а затем перейдите к фазам компиляции и запуска.
+
+Сложные демонстрационные приложения для FreeRTOS можно найти в следующем месте FreeRTOS на GitHub: `+FreeRTOS/FreeRTOS-Plus/Demo/+`.
