@@ -1,6 +1,7 @@
 = Создание приложений на базе RISC-V и FreeRTOS
 :source-highlighter: rouge
 :doctype: book
+:icons: font
 :toc: macro
 :toc-title: Содержание
 :chapter-signifier: Глава

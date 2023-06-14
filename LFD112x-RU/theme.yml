@@ -6,3 +6,6 @@ table:
   caption:
     align: center
     end: bottom
+role:
+    small:
+        font-size: 6
