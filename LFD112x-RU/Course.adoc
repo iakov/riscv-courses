@@ -18,6 +18,8 @@ toc::[]
 
 :imagesoutdir: images
 :pp: ++
+:lquot: &#171;
+:rquot: &#187;
 
 :sectnums:
 include::Chapters/Chapter1.adoc[Глава 1. Введение в RTOS и встраиваемые системы]
