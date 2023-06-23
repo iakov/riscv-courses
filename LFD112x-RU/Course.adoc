@@ -28,7 +28,7 @@ include::Chapters/Chapter1.adoc[Глава 1. Введение в RTOS и вст
 include::Chapters/Chapter2.adoc[Глава 2. FreeRTOS]
 
 :sectnumlevels: 3
-include::Chapters/Chapter3.adoc[Глава 3. Перенос FreeRTOS на другую программную или аппаратную платформу]
+include::Chapters/Chapter3.adoc[Глава 3. Портирование FreeRTOS на другую программную или аппаратную платформу]
 
 include::Chapters/Chapter4.adoc[Глава 4. Процессоры RISC-V]
 
