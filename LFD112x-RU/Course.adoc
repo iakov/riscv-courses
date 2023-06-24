@@ -1,4 +1,6 @@
-= Создание приложений на базе RISC-V и FreeRTOS
+:riscv: RISC&#8209;V
+
+= Создание приложений на базе {riscv} и FreeRTOS
 :source-highlighter: rouge
 :doctype: book
 :icons: font
@@ -30,10 +32,10 @@ include::Chapters/Chapter2.adoc[Глава 2. FreeRTOS]
 :sectnumlevels: 3
 include::Chapters/Chapter3.adoc[Глава 3. Портирование FreeRTOS на другую программную или аппаратную платформу]
 
-include::Chapters/Chapter4.adoc[Глава 4. Процессоры RISC-V]
+include::Chapters/Chapter4.adoc[Глава 4. Процессоры {riscv}]
 
-include::Chapters/Chapter5.adoc[Глава 5. Портирование приложений FreeRTOS на процессоры RISC-V]
+include::Chapters/Chapter5.adoc[Глава 5. Портирование приложений FreeRTOS на процессоры {riscv}]
 
-include::Chapters/Chapter6.adoc[Глава 6. Создание приложений под FreeRTOS и RISC-V]
+include::Chapters/Chapter6.adoc[Глава 6. Создание приложений под FreeRTOS и {riscv}]
 
 include::Chapters/TechnicalTerms.adoc[Список терминов]
