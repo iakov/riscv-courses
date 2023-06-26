@@ -2,6 +2,8 @@
 
 * https://training.linuxfoundation.org/training/risc-v-toolchain-and-compiler-optimization-techniques-lfd113x/[LFD113x (RISC-V Toolchain and Compiler Optimization Techniques)]
 
+* https://training.linuxfoundation.org/training/building-applications-with-risc-v-and-freertos-lfd112x/[LFD112x (Building Applications with RISC-V and FreeRTOS)]
+
 == Сборка артефактов курсов
 
 Для сборки `.pdf` из `.adoc` файлов используется https://docs.asciidoctor.org/pdf-converter/latest/[asciidoctor-pdf].

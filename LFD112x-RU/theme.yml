@@ -1,0 +1,11 @@
+extends: default
+image:
+  caption:
+    align: center
+table:
+  caption:
+    align: center
+    end: bottom
+role:
+    small:
+        font-size: 6
