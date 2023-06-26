@@ -3,7 +3,7 @@
 == Список терминов
 
 non-real-time systems:: системы общего назначения
-round-robin:: не переводила
+round-robin:: круговое обслуживание
 static time scheduling algorithm:: статическое планирование
 rate-monotonic scheduling:: монотонное планирование скорости
 tick hook functions:: функции перехвата, вызванные прерыванием тика
@@ -23,3 +23,4 @@ run tasks of equal priority in a time slice manner:: выполнение зад
 fixed-function accelerators:: ускорители с фиксированными функциями
 tool flow:: поток инструментов
 coroutines:: сопрограммы/корутины
+ISA (Instruction Set Architecture):: архитектура набора команд
