@@ -8,7 +8,11 @@ static time scheduling algorithm:: статическое планировани
 rate-monotonic scheduling:: монотонное планирование скорости
 tick hook functions:: функции перехвата, вызванные прерыванием тика
 idle hook functions:: функции перехвата, вызванные задачей ожидания
+trace:: трассировка
+interrupt:: прерывание
+interrupt vector:: вектор прерываний
 Full interrupt nesting model:: модель полной вложенности прерываний
+scheduler:: планировщик
 Third party contributions:: сторонние контрибуции
 core of the kernel:: ядро ядра
 best-fit:: алгоритм наибольшего соответствия
@@ -21,6 +25,13 @@ suspended (task state):: приостановлена
 resume operation:: операция возобновления
 run tasks of equal priority in a time slice manner:: выполнение задач с одинаковым приоритетом в режиме «нарезания времени»
 fixed-function accelerators:: ускорители с фиксированными функциями
+toolchaint:: инструментарий
+porting:: портирование, перенос
+ISA (Instruction Set Architecture):: архитектура набора команд, в курсе используется аббревиатура
+trap:: ловушка
+CSR (Control and Status Register):: в курсе не переводится
+EEI (Execution Environment Interface):: интерфейс среды выполнения, в курсе используется аббревиатура
+cross compiler:: кросс-компилятор
+sanity test:: тест на работоспособность
 tool flow:: поток инструментов
 coroutines:: сопрограммы/корутины
-ISA (Instruction Set Architecture):: архитектура набора команд
