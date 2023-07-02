@@ -129,9 +129,9 @@ https://github.com/riscv-software-src/riscv-isa-sim#compiling-and-running-a-simp
 поэтому для начала рекомендуется использовать Linux-машину.
 . набор инструментов
 RISC-V: https://github.com/riscv-software-src
-. QEMU: `git clone --depth 1 --branch v5.0.0 https://github.com/qemu/qemu`
-. Linux: `git clone --depth 1 --branch v5.4 https://github.com/torvalds/linux`
-. Busybox: `git clone --depth 1 git://git.busybox.net/busybox`
+. QEMU: `+git clone --depth 1 --branch v5.0.0 https://github.com/qemu/qemu+`
+. Linux: `+git clone --depth 1 --branch v5.4 https://github.com/torvalds/linux+`
+. Busybox: `+git clone --depth 1 git://git.busybox.net/busybox+`
 
 Перечисленные выше ветки репозиториев являются предлагаемыми версиями, которые могут часто меняться.
 Вы можете выбрать и другие.

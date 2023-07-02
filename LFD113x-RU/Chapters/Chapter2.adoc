@@ -292,7 +292,7 @@ gcc -O3 -fauto-profile=a.gcov test.c -o b.out
 
 [source,bash]
 ----
-size gcc/11/libstdc{pp}.dylib
+size gcc/11/libstdc++.dylib
 ----
 
 [source,bash]
@@ -307,7 +307,7 @@ __TEXT    __DATA    __OBJC    others    dec    hex
 
 [source,bash]
 ----
-strings gcc/11/libstdc{pp}.dylib | wc -l
+strings gcc/11/libstdc++.dylib | wc -l
 ----
 
 [source,bash]
@@ -322,7 +322,7 @@ strings gcc/11/libstdc{pp}.dylib | wc -l
 
 [source,bash]
 ----
-bloaty gcc/11/libstdc{pp}.dylib
+bloaty gcc/11/libstdc++.dylib
 ----
 
 [source,bash]
