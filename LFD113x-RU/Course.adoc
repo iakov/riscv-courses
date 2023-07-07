@@ -1,4 +1,6 @@
-= Набор инструментов RISC-V и оптимизации компилятора
+:riscv: RISC&#8209;V
+
+= Набор инструментов {riscv} и оптимизации компилятора
 :source-highlighter: rouge
 :doctype: book
 :toc: macro
@@ -6,7 +8,7 @@
 :chapter-signifier: Глава
 :figure-caption: Рисунок
 
-Данные материалы являются переводом курса https://training.linuxfoundation.org/training/risc-v-toolchain-and-compiler-optimization-techniques-lfd113x/[RISC-V Toolchain and Compiler Optimization Techniques (LFD113x)], распространяемого под лицензией https://creativecommons.org/licenses/by/4.0/[CC BY 4.0].
+Данные материалы являются переводом курса https://training.linuxfoundation.org/training/risc-v-toolchain-and-compiler-optimization-techniques-lfd113x/[{riscv} Toolchain and Compiler Optimization Techniques (LFD113x)], распространяемого под лицензией https://creativecommons.org/licenses/by/4.0/[CC BY 4.0].
 
 Перед прочтением курса рекомендуем читалю ознакомиться с используемыми в нём терминами и их переводами, список которых можно найти в разделе <<section-terms>>.
 
@@ -20,7 +22,7 @@ include::Chapters/Chapter1.adoc[Глава 1. Инструментарий ко�
 
 include::Chapters/Chapter2.adoc[Глава 2. Введение в компиляторные оптимизации]
 
-include::Chapters/Chapter3.adoc[Глава 3. Создание приложений RISC-V]
+include::Chapters/Chapter3.adoc[Глава 3. Создание приложений {riscv}]
 
 include::Chapters/Chapter4.adoc[Глава 4. Методы отладки]
 
