@@ -64,9 +64,9 @@ if [ "$COURSEDIR" == "" ]; then
 fi
 
 if [ "$FILENAME" != "" ]; then
-    MAKEOPTS+="RESULT_DOCX=${FILENAME}.docx"
-    MAKEOPTS+="RESULT_PDF=${FILENAME}.pdf"
-    MAKEOPTS+="RESULT_XML=${FILENAME}.xml"
+    MAKEOPTS+="RESULT_DOCX=${FILENAME}.docx "
+    MAKEOPTS+="RESULT_PDF=${FILENAME}.pdf "
+    MAKEOPTS+="RESULT_XML=${FILENAME}.xml "
 fi
 
 # Build selected course
@@ -77,10 +77,10 @@ case $CONVERTER in
         exit 1
         ;;
     pandoc)
-        make -C "$COURSEDIR" "${MAKEOPTS[@]}" pandoc
+        make -C "$COURSEDIR" ${MAKEOPTS[@]} pandoc
         ;;
     asciidoctor)
-        make -C "$COURSEDIR" "${MAKEOPTS[@]}" asciidoctor
+        make -C "$COURSEDIR" ${MAKEOPTS[@]} asciidoctor
         ;;
     *)
         echo "Unknown converter ${CONVERTER}"
