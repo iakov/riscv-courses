@@ -84,12 +84,12 @@ https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D0%BD%D1%82%D1%80%D0%B0%D0%BA%D1%82%D
 буфера, повреждение памяти и многих других. Существуют санитайзеры адресов, памяти, неопределенного поведения, потоков и прочие.
 Это обеспечивает автоматизированный способ обнаружения ошибок.
 Санитайзеры также требуют поддержки времени выполнения для поиска ошибок, а она доступна не на всех платформах.
-Например, RISC-V в настоящее время поддерживает только санитайзер адресов и санитайзер потоков.
+Например, {riscv} в настоящее время поддерживает только санитайзер адресов и санитайзер потоков.
 https://github.com/google/sanitizers[Этот документ] является источником достоверной информации для всей документации по санитайзерам.
 
 На некоторых платформах https://valgrind.org/[Valgrind] также может обнаружить ошибки,
 которые выявляются некоторыми санитайзерами, например, повреждение памяти или её утечки.
-К сожалению, в настоящее время Valgrind недоступен для платформ RISC-V.
+К сожалению, в настоящее время Valgrind недоступен для платформ {riscv}.
 
 ==== Нативная отладка с помощью отладчика
 
@@ -127,7 +127,7 @@ https://github.com/google/sanitizers[Этот документ] является
 В случае заинтересованности вы можете начать работу со
 https://developers.redhat.com/blog/2015/04/28/remote-debugging-with-gdb[статьи блога «Удаленная отладка с GDB»].
 Страница https://man7.org/linux/man-pages/man1/gdbserver.1.html[руководства gdbserver(1) -- Linux] также предлагает отличную документацию.
-В официальном https://github.com/riscvarchive/riscv-binutils-gdb[репозитории RISC-V binutils] есть исходный код `gdbserver`.
+В официальном https://github.com/riscvarchive/riscv-binutils-gdb[репозитории {riscv} binutils] есть исходный код `gdbserver`.
 
 ==== Отладка на основе JTAG
 
@@ -137,15 +137,15 @@ https://developers.redhat.com/blog/2015/04/28/remote-debugging-with-gdb[стат
 Большинство современных аппаратных средств предоставляют возможность прямой трассировки инструкций и данных
 с помощью стандартного протокола JTAG, хотя у каждого производителя аппаратных средств может быть разный уровень поддержки.
 Он часто используется для отладки аппаратных неполадок.
-RISC-V определяет стандартный интерфейс для внешней отладки, который включает в себя
+{riscv} определяет стандартный интерфейс для внешней отладки, который включает в себя
 доступ к аппаратным потокам (hart) с самой первой инструкции, доступ к памяти, пошаговые инструкции и т. д.
 
 === Справочные материалы
 
 * https://www.cs.cornell.edu/courses/cs312/2006fa/lectures/lec26.html[Корнельский университет, CS312 Лекция 26, Техники отладки]
 * https://www.sourceware.org/gdb/current/onlinedocs/gdb.html[Отладка с помощью GDB]
-* https://riscv.org/wp-content/uploads/2016/01/Tues1030-RISC-V-External-Debug.pdf[Тим Ньюсом -- Внешняя отладка RISC-V (она же JTAG-отладка)]
-* https://riscv.org/wp-content/uploads/2019/03/riscv-debug-release.pdf[Тим Ньюсом и Меган Вакс -- Поддержка внешней отладки RISC-V в версии 0.13.2]
-* https://five-embeddev.com/riscv-debug-spec/latest/introduction.html#sec:intro[Five EmbedDev -- Блог о встраиваемой RISC-V]
+* https://riscv.org/wp-content/uploads/2016/01/Tues1030-{riscv}-External-Debug.pdf[Тим Ньюсом -- Внешняя отладка {riscv} (она же JTAG-отладка)]
+* https://riscv.org/wp-content/uploads/2019/03/riscv-debug-release.pdf[Тим Ньюсом и Меган Вакс -- Поддержка внешней отладки {riscv} в версии 0.13.2]
+* https://five-embeddev.com/riscv-debug-spec/latest/introduction.html#sec:intro[Five EmbedDev -- Блог о встраиваемой {riscv}]
 * https://www.cs.usfca.edu/~parrt/course/601/lectures/programming.by.contract.html[Университет Сан-Франциско -- Программирование «по контракту»]
 * https://github.com/riscv/riscv-isa-sim#debugging-with-gdb[Отладка с помощью Gdb]
