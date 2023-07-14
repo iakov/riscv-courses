@@ -8,18 +8,21 @@ function usage() {
 Usage: $0 [OPTION] COURSE_NAME
 
 Build artifacts of the course with COURSE_NAME
-  -o, --out FILENAME       output pdf FILENAME
+  -o, --out FILENAME       output FILENAME without extension
+  -c, --conv CONVERTER     which CONVERTER to use (asciidoctor or pandoc)
   -h, --help               print this help message and exit
 
 Examples:
   $0 LFD113x-RU
-  $0 -o 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_(LFD113x)_RU.pdf' LFD113x-RU
+  $0 -o 'Инструментарий_и_компиляторные_оптимизации_для_RISC-V_(LFD113x)_RU' -c asciidoctor LFD113x-RU
 tac
 }
 
 
 # Parse arguments
 COURSEDIR=""
+CONVERTER=""
+FILENAME=""
 MAKEOPTS=()
 
 while [ "$1" != "" ]; do
@@ -29,7 +32,11 @@ while [ "$1" != "" ]; do
             exit 0
             ;;
         -o|--out)
-            MAKEOPTS+=("RESULT_PDF=$2")
+            FILENAME=$2
+            shift 2
+            ;;
+        -c|--conv)
+            CONVERTER=$2
             shift 2
             ;;
         -*)
@@ -56,5 +63,28 @@ if [ "$COURSEDIR" == "" ]; then
     exit 1
 fi
 
+if [ "$FILENAME" != "" ]; then
+    MAKEOPTS+="RESULT_DOCX=${FILENAME}.docx"
+    MAKEOPTS+="RESULT_PDF=${FILENAME}.pdf"
+    MAKEOPTS+="RESULT_XML=${FILENAME}.xml"
+fi
+
 # Build selected course
-make -C "$COURSEDIR" "${MAKEOPTS[@]}"
+case $CONVERTER in
+    "")
+        echo "No converter selected"
+        usage
+        exit 1
+        ;;
+    pandoc)
+        make -C "$COURSEDIR" "${MAKEOPTS[@]}" pandoc
+        ;;
+    asciidoctor)
+        make -C "$COURSEDIR" "${MAKEOPTS[@]}" asciidoctor
+        ;;
+    *)
+        echo "Unknown converter ${CONVERTER}"
+        usage
+        exit 1
+        ;;
+esac

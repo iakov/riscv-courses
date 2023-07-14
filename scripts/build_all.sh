@@ -12,11 +12,12 @@ Usage: $0 [OPTION]...
 Build artifacts of the all courses
   -h, --help               print this help message and exit
   -o, --out-dir DIRECTORY  name of the DIRECTORY for all built artifacts
-  -s, --suffix SUFFIX      SUFFIX for output pdf filename
+  -s, --suffix SUFFIX      SUFFIX for output filename
+  -c, --conv CONVERTER     which CONVERTER to use (asciidoctor or pandoc)
 
 Examples:
   $0
-  $0 -o 'build' -s 'v1.0'
+  $0 -o 'build' -s 'v1.0' -c asciidoctor
 tac
 }
 
@@ -27,6 +28,7 @@ function get_info() {
 # Parse arguments
 BUILDDIR=""
 SUFFIX=""
+CONVERTER="asciidoctor"
 
 while [ "$1" != "" ]; do
     case $1 in
@@ -50,6 +52,19 @@ while [ "$1" != "" ]; do
                 usage
                 exit 1
             fi
+            shift 2
+            ;;
+        -c|--conv)
+            case $2 in
+                pandoc|asciidoctor)
+                    CONVERTER="$2"
+                    ;;
+                *)
+                    echo "Unknown CONVERTER: $2"
+                    usage
+                    exit 1
+                    ;;
+            esac
             shift 2
             ;;
         -*)
@@ -79,7 +94,8 @@ fi
 while IFS="" read -r line || [ -n "$line" ]
 do
   COURSE_NAME=$(get_info "$line" 1)
-  OUT_FILENAME="$(get_info "$line" 2)$SUFFIX.pdf"
+  OUT_FILENAME="$(get_info "$line" 2)$SUFFIX"
 
-  "$BASEDIR/build_course.sh" -o "$BUILDDIR/$OUT_FILENAME" "$COURSE_NAME"
+  "$BASEDIR/build_course.sh" -o "$BUILDDIR/$OUT_FILENAME" -c "$CONVERTER" "$COURSE_NAME"
+    
 done < "$COURSES"
