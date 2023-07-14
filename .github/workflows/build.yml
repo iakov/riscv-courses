@@ -8,7 +8,7 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
-        container: asciidoctor/docker-asciidoctor
+        container: oaafon/pandoctor:v1
         env:
             RESULT_NAME: 'Переводы курсов'
             BUILD_DIRECTORY: 'build'
