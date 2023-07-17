@@ -58,10 +58,10 @@ if [ "$COURSEDIR" == "" ]; then
 fi
 
 if [ "$FILENAME" != "" ]; then
-    MAKEOPTS+="RESULT_DOCX=${FILENAME}.docx "
-    MAKEOPTS+="RESULT_PDF=${FILENAME}.pdf "
-    MAKEOPTS+="RESULT_XML=${FILENAME}.xml "
+    MAKEOPTS+=("RESULT_DOCX=${FILENAME}.docx")
+    MAKEOPTS+=("RESULT_PDF=${FILENAME}.pdf")
+    MAKEOPTS+=("RESULT_XML=${FILENAME}.xml")
 fi
 
 # Build selected course
-make -C "$COURSEDIR" ${MAKEOPTS[@]}
+make -C "$COURSEDIR" "${MAKEOPTS[@]}"
