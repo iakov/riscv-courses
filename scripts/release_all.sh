@@ -92,8 +92,9 @@ fi
 # Release all files in build directory
 while IFS="" read -r line || [ -n "$line" ]
 do
-  OUT_FILENAME="$(get_info "$line" 2)$SUFFIX.pdf"
+  OUT_FILENAME="$(get_info "$line" 2)$SUFFIX"
   LABEL=$(get_info "$line" 3)
 
-  "$BASEDIR/release_file.sh" "$TAG" -t "$TITLE" "$BUILDDIR/$OUT_FILENAME" "$LABEL"
+  "$BASEDIR/release_file.sh" "$TAG" -t "$TITLE" "$BUILDDIR/${OUT_FILENAME}.pdf" "${LABEL} (pdf)"
+  "$BASEDIR/release_file.sh" "$TAG" -t "$TITLE" "$BUILDDIR/${OUT_FILENAME}.docx" "${LABEL} (docx)"
 done < "$COURSES"

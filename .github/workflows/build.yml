@@ -15,7 +15,9 @@ jobs:
         steps:
             - uses: actions/checkout@v3
             - name: Build all courses
-              run: ./scripts/build_all.sh -o '${{ env.BUILD_DIRECTORY }}'
+              run: |
+                apk add --no-cache pandoc
+                /bin/sh -x ./scripts/build_all.sh -o '${{ env.BUILD_DIRECTORY }}'
             - uses: actions/upload-artifact@v3
               with:
                 name: ${{ env.RESULT_NAME }}

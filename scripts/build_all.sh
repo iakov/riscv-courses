@@ -12,7 +12,7 @@ Usage: $0 [OPTION]...
 Build artifacts of the all courses
   -h, --help               print this help message and exit
   -o, --out-dir DIRECTORY  name of the DIRECTORY for all built artifacts
-  -s, --suffix SUFFIX      SUFFIX for output pdf filename
+  -s, --suffix SUFFIX      SUFFIX for output filename
 
 Examples:
   $0
@@ -79,7 +79,8 @@ fi
 while IFS="" read -r line || [ -n "$line" ]
 do
   COURSE_NAME=$(get_info "$line" 1)
-  OUT_FILENAME="$(get_info "$line" 2)$SUFFIX.pdf"
+  OUT_FILENAME="$(get_info "$line" 2)$SUFFIX"
 
   "$BASEDIR/build_course.sh" -o "$BUILDDIR/$OUT_FILENAME" "$COURSE_NAME"
+    
 done < "$COURSES"
