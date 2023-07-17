@@ -21,11 +21,11 @@ jobs:
                 docker run \
                     --rm -v '${{ github.workspace }}':/documents \
                     asciidoctor/docker-asciidoctor:latest \
-                    /bin/sh -c "apk add --no-cache pandoc; \
+                    /bin/sh -cx "apk add --no-cache pandoc; \
                     ./scripts/build_all.sh -o '${{ env.BUILD_DIRECTORY }}' -s '${{ github.ref_name}}'"
             - name: Release all courses assets
               run: |
-                ./scripts/release_all.sh '${{ github.ref_name}}' \
+                bash -x ./scripts/release_all.sh '${{ github.ref_name}}' \
                     -o '${{ env.BUILD_DIRECTORY }}' \
                     -s '${{ github.ref_name}}' \
                     '${{ env.RELEASE_TITLE }}'
