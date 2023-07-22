@@ -153,3 +153,4 @@ https://developers.redhat.com/blog/2015/04/28/remote-debugging-with-gdb[стат
 * https://five-embeddev.com/riscv-debug-spec/latest/introduction.html#sec:intro[Five EmbedDev -- Блог о встраиваемой {riscv}]
 * https://www.cs.usfca.edu/~parrt/course/601/lectures/programming.by.contract.html[Университет Сан-Франциско -- Программирование «по контракту»]
 * https://github.com/riscv/riscv-isa-sim#debugging-with-gdb[Отладка с помощью Gdb]
+* https://youtu.be/q2zztv9Z9i4[Константин Владимиров -- Специальный выпуск: лекции по тулчейну, часть 4, линкеры и отладка]

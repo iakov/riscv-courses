@@ -173,6 +173,13 @@ as -v --64 -o /tmp/ccAOJYkw.o /tmp/ccwbNcfY.s
 * https://elinux.org/Toolchains[Toolchains]
 * https://gcc.gnu.org/onlinedocs/gccint/Initialization.html[How Initialization Functions Are Handled (C runtime)]
 
+==== Полезные ресурсы
+
+* https://youtu.be/335ylTUlyng[Константин Владимиров -- Специальный выпуск: лекции по тулчейну, часть 1, фронтенд]
+* https://youtu.be/04Gt0HOatUw[Константин Владимиров -- Специальный выпуск: лекции по тулчейну, часть 2, миддленд и ассемблер]
+* https://youtu.be/lUvcvmG6kIw[Константин Владимиров -- Специальный выпуск: лекции по тулчейну, часть 3, линкеры]
+
+
 === Кросс-компиляция
 
 Чтобы понять концепцию кросс-компиляции, давайте вернемся к определению компилятора.
