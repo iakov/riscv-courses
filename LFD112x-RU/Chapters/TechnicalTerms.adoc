@@ -3,6 +3,7 @@
 == Список терминов
 
 non-real-time systems:: системы общего назначения
+event-driven system:: событийно-ориентированная система
 round-robin:: круговое обслуживание
 static time scheduling algorithm:: статическое планирование
 rate-monotonic scheduling:: монотонное планирование скорости
@@ -14,7 +15,7 @@ interrupt vector:: вектор прерываний
 Full interrupt nesting model:: модель полной вложенности прерываний
 scheduler:: планировщик
 Third party contributions:: сторонние контрибуции
-core of the kernel:: ядро ядра
+core of the kernel:: ключевая часть ядра
 best-fit:: алгоритм наибольшего соответствия
 deeply embedded:: глубоко встраиваемые
 task prior state:: предшествующее состояние задачи
