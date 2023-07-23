@@ -9,7 +9,7 @@ instrumentation:: инструментирование
 introspection:: интроспекция
 compiler-driver:: драйвер компилятора
 bottleneck:: узкое место
-runtime profile:: профиль времени выполнения
+runtime profile:: профиль исполнения
 loop unrolling:: развертывание циклов
 inlining:: встраивание функций или инлайнинг
 instruction scheduling:: планирование инструкций
