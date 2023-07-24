@@ -29,6 +29,7 @@ pandoc: $(RESULT_DOCX)
 clean:
 	$(RM) $(RESULT_PDF) $(RESULT_XML) $(RESULT_DOCX)
 
+.SECONDARY: $(RESULT_XML)
 $(RESULT_XML): $(ROOT_ASCIIDOC) $(CHAPTERS)
 	$(ASCIIDOCTOR) \
 		--backend docbook \

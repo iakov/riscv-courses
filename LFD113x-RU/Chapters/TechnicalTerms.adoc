@@ -2,14 +2,14 @@
 [glossary]
 == Список терминов
 
-toolchain:: инструментарий, набор инструментов
+toolchain:: система компиляции, тулчейн
 high-level/low-level languages:: языки высокого/низкого уровня
 static analysis:: статический анализ
 instrumentation:: инструментирование
 introspection:: интроспекция
 compiler-driver:: драйвер компилятора
 bottleneck:: узкое место
-runtime profile:: профиль времени выполнения
+runtime profile:: профиль исполнения
 loop unrolling:: развертывание циклов
 inlining:: встраивание функций или инлайнинг
 instruction scheduling:: планирование инструкций
@@ -19,7 +19,7 @@ stack frame:: кадр стека
 buffer overflow:: переполнение буфера
 coverage file:: файл покрытия
 code layout:: размещение кода
-sampling profiler:: семплирующий профилятор
+sampling profiler:: семплирующий профилировщик
 call site devirtualization:: девиртуализация вызовов
 instantiate:: инстанцировать
 dead code:: мертвый код
@@ -27,10 +27,10 @@ comprehensive test suite:: комплексный набор тестов
 rich performance profiles:: расширенные профили производительности
 ELF targets:: целевые платформы ELF
 sub-architecture:: субархитектура
-SoCs:: однокристальные системы
+SoC:: система на кристалле, СнК
 print debugging:: отладочная печать
 sanitizer:: санитайзер
 assertion:: в курсе не переводится
 breakpoint:: точка останова или контрольная точка
-backtrace:: в курсе не переводится
-single-stepping instructions:: пошаговые инстукции
+backtrace (stack trace):: стектрейс, трассировка стека
+single-stepping instructions:: пошаговые инструкции
