@@ -3,14 +3,21 @@
 = Набор инструментов {riscv} и оптимизации компилятора
 :source-highlighter: rouge
 :doctype: book
+:icons: font
 :toc: macro
 :toc-title: Содержание
 :chapter-signifier: Глава
 :figure-caption: Рисунок
 
-Данные материалы являются переводом курса https://training.linuxfoundation.org/training/risc-v-toolchain-and-compiler-optimization-techniques-lfd113x/[{riscv} Toolchain and Compiler Optimization Techniques (LFD113x)], распространяемого под лицензией https://creativecommons.org/licenses/by/4.0/[CC BY 4.0].
+Данный материал является переводом и адаптацией учебного курса {riscv} Toolchain and Compiler Optimization Techniques (LFD113x),
+The Linux Foundation, https://training.linuxfoundation.org/training/risc-v-toolchain-and-compiler-optimization-techniques-lfd113x/,
+распространяемого под лицензией https://creativecommons.org/licenses/by/4.0/[CC BY 4.0].
+Перевод и адаптация выполнены по заказу https://riscv-alliance.ru/[Альянса {riscv}],
+допускается к использованию под лицензией https://creativecommons.org/licenses/by/4.0/deed.ru[CC BY 4.0].
 
-Обращаем внимание читателя, что данный текст не является строгим академическим изложением, а представляет собой перевод с некоторым сглаживанием и уточнением терминологии, а также добавлением русскоязычных справочных материалов. Перед прочтением курса рекомендуем ознакомиться с используемыми в нём терминами и их переводами, список которых можно найти в разделе <<section-terms>>.
+Обращаем внимание читателя, что данный текст не является строгим академическим изложением,
+а представляет собой перевод с некоторым сглаживанием и уточнением терминологии, а также добавлением русскоязычных справочных материалов.
+Перед прочтением курса рекомендуем ознакомиться с используемыми в нём терминами и их переводами, список которых можно найти в разделе <<section-terms>>.
 
 toc::[]
 
