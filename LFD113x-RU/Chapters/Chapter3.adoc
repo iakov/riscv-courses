@@ -1,3 +1,13 @@
+ifdef::env-github[]
+:imagesdir: ../images
+:riscv: RISC&#8209;V
+:tip-caption: :bulb:
+:note-caption: :memo:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
 == Создание приложений {riscv}
 
 В этой главе мы узнаем, как использовать популярные системы компиляции (как LLVM, так и GCC) для создания приложений {riscv},

@@ -1,3 +1,13 @@
+ifdef::env-github[]
+:imagesdir: ../images
+:riscv: RISC&#8209;V
+:tip-caption: :bulb:
+:note-caption: :memo:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
 == Портирование FreeRTOS на другую программную или аппаратную платформу
 
 В этой главе представлены концепции, связанные с портированием FreeRTOS, и даны инструкции по реализации.
