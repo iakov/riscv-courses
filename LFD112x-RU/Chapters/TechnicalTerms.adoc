@@ -2,8 +2,16 @@
 [glossary]
 == Список терминов
 
-non-real-time systems:: системы общего назначения
+BSP (board support packages):: пакеты поддержки платы
+PCB (printed circuit board):: печатная плата
+real-time system:: система реального времени
+non-real-time system:: система общего назначения
 event-driven system:: событийно-ориентированная система
+time-sharing system:: система с разделением времени
+scheduler:: планировщик
+preemptive scheduling:: вытесняющее планирование
+clock interrupts:: тактовые прерывания
+jitter:: джиттер
 round-robin:: круговое обслуживание
 static time scheduling algorithm:: статическое планирование
 rate-monotonic scheduling:: монотонное планирование скорости
@@ -16,6 +24,8 @@ Full interrupt nesting model:: модель полной вложенности 
 scheduler:: планировщик
 Third party contributions:: сторонние контрибуции
 core of the kernel:: ключевая часть ядра
+porting::  портирование, перенос
+port:: порт (в курсе встречается использование термина в двух значениях: портированное ПО и порт ввода-вывода)
 best-fit:: алгоритм наибольшего соответствия
 deeply embedded:: глубоко встраиваемые
 task prior state:: предшествующее состояние задачи
@@ -24,10 +34,11 @@ running (task state):: выполняется
 blocked (task state):: заблокирована
 suspended (task state):: приостановлена
 resume operation:: операция возобновления
-run tasks of equal priority in a time slice manner:: выполнение задач с одинаковым приоритетом в режиме «нарезания времени»
+run tasks in a time slice manner:: выполнение задач в режиме «нарезания времени»
+direct task notifications:: прямые уведомления о задачах
+callback:: функция обратного вызова
 fixed-function accelerators:: ускорители с фиксированными функциями
-toolchaint:: инструментарий
-porting:: портирование, перенос
+toolchain:: тулчейн
 ISA (Instruction Set Architecture):: архитектура набора команд, в курсе используется аббревиатура
 trap:: ловушка
 CSR (Control and Status Register):: в курсе не переводится
