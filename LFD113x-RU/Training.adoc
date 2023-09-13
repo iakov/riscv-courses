@@ -10,6 +10,7 @@ endif::[]
 = Лабораторная работа
 :source-highlighter: rouge
 :doctype: book
+:icons: font
 :riscv: RISC&#8209;V
 
 Приведённые в данной лабораторной работе команды расчитаны на выполненение в рабочей среде _Syntacore Kit_,

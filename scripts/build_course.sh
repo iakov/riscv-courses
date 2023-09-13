@@ -65,3 +65,14 @@ fi
 
 # Build selected course
 make -C "$COURSEDIR" "${MAKEOPTS[@]}"
+
+if [ -f "$COURSEDIR/Training.adoc" ]; then
+    MAKEOPTS=()
+    FILENAME="${FILENAME}${FILENAME:+_}Training"
+    MAKEOPTS+=("RESULT_DOCX=${FILENAME}.docx")
+    MAKEOPTS+=("RESULT_PDF=${FILENAME}.pdf")
+    MAKEOPTS+=("RESULT_XML=${FILENAME}.xml")
+    MAKEOPTS+=("ROOT_ASCIIDOC_NAME=Training")
+    MAKEOPTS+=("CHAPTERS=")
+    make -C "$COURSEDIR" "${MAKEOPTS[@]}"
+fi
