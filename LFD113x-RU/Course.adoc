@@ -1,6 +1,6 @@
 :riscv: RISC&#8209;V
 
-= Набор инструментов {riscv} и оптимизации компилятора
+= Тулчейн {riscv} и компиляторные оптимизации
 :source-highlighter: rouge
 :doctype: book
 :icons: font
