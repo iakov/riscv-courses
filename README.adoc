@@ -33,7 +33,7 @@ docker run --rm \
 
 [source,shell]
 ----
-./scripts/build_course.sh --out LFD113x_RU.pdf LFD113x-RU
+./scripts/build_course.sh --out LFD113x_RU LFD113x-RU
 ----
 
 == Добавление нового курса

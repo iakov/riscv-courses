@@ -1,3 +1,13 @@
+ifdef::env-github[]
+:imagesdir: ../images
+:riscv: RISC&#8209;V
+:tip-caption: :bulb:
+:note-caption: :memo:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
 [#section-chapter1]
 == Системы компиляции
 
