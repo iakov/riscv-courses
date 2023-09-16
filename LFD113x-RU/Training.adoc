@@ -1,0 +1,661 @@
+ifdef::env-github[]
+:imagesdir: ../images
+:tip-caption: :bulb:
+:note-caption: :memo:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= Лабораторная работа
+:source-highlighter: rouge
+:doctype: book
+:icons: font
+:riscv: RISC&#8209;V
+
+Приведённые в данной лабораторной работе команды расчитаны на выполненение в рабочей среде _Syntacore Kit_,
+распространяемой https://riscv-alliance.ru/[Альяносом {riscv}] в образовательных целях.
+Обратите внимание, что в другом окружении приведённые примеры команд могут не работать или работать иначе.
+// ссылка на html-версию лабораторной с интерактивными примерами с godbolt.
+
+Рассмотрите программу, считающую скалярное произведение векторов.
+
+.main.c
+[source, c, opts=linenums]
+----
+#include <stdlib.h>
+#include <stdio.h>
+#include <memory.h>
+#include <time.h>
+#include <malloc.h>
+
+const size_t N = 200000;
+const size_t K = 2000;
+
+typedef  float cell_t;
+typedef cell_t * cell_ptr_t;  
+
+cell_t dot_product(cell_ptr_t a, cell_ptr_t b, size_t n) {
+    cell_t r = 0;
+    for (size_t i = 0; i < n; ++i) {
+        r += a[i] * b[i];
+    }
+    return r;
+}
+
+cell_ptr_t allocate() {
+    cell_ptr_t r = (cell_t*) malloc(sizeof(cell_t) * N);  
+    for (size_t i = 1; i < N; ++i) {
+        r[i] = (cell_t) (N *  rand() / RAND_MAX);
+    }
+    return r;
+}
+
+int main() {
+    srand(0); // reproducible PRNG
+    cell_ptr_t a = allocate();
+    cell_ptr_t b = allocate(); 
+    cell_t r1 = 0;
+    clock_t t = clock();    
+    for (size_t i = 0; i < K; ++i) {
+        int x = (t % (i + 1)); // some number to force dot_product call
+        r1 += dot_product( (x & 2) ? a : b
+                        , (x & 1) ? b : a
+                        , N);
+    }    
+    double time1 = (double)(clock()-t)/CLOCKS_PER_SEC;
+    
+    printf("%.3g\n%.3g\n"
+        , r1
+        , time1);
+
+    free((void *)a);
+    free((void *)b);
+    return 0;
+}
+----
+
+== Кросс-компиляция и запуск
+
+Скомпилируйте программу под RISC-V. В _Syntacore Kit_ для систем компиляции GCC и CLang это делается следующими способами:
+
+[cols="a,a", frame="none", grid="none"]
+|====
+|GCC
+|CLang
+|
+[source, sh]
+----
+riscv64-unknown-linux-gnu-gcc main.c -o main
+----
+|
+[source, sh]
+----
+clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -o main main.c
+----
+|====
+
+Убедитесь, что полученный исполняемый файл предназначен для {riscv}:
+
+[source, sh]
+----
+file ./main
+----
+
+
+[source, console]
+----
+./main: ELF 64-bit LSB pie executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-riscv64-lp64d.so.1, for GNU/Linux 4.15.0, with debug_info, not stripped
+----
+
+
+Запустите скомпилированную программу в эмуляторе _qemu_:
+
+[source, sh]
+----
+qemu-riscv64 -L "$RISCV/sysroot" ./main
+----
+
+== Отладка
+
+Скомпилируйте программу под RISC-V c отладочной информацией, выставив флаг `-g`:
+
+[cols="a,a", frame="none", grid="none"]
+|====
+|GCC
+|CLang
+|
+[source, sh]
+----
+riscv64-unknown-linux-gnu-gcc -g main.c -o main
+----
+|
+[source, sh]
+----
+clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -g -o main main.c
+----
+|====
+
+
+Запустите _qemu_ с сервером GDB на произвольном порту, например `12345`:
+
+[source, sh]
+----
+qemu-riscv64 -L $RISCV/sysroot -g 12345 ./main
+----
+
+Он будет ждать подключения GDB. 
+Затем запустите GDB из системы компиляции для RISC-V (с использованием отладочных символов из файла `./main`):
+
+[source, sh]
+----
+riscv64-unknown-linux-gnu-gdb ./main
+----
+
+В консоли GDB подключитесь к GDB-серверу, запущенном в _qemu_:
+
+[source, gdb]
+----
+target remote localhost:12345
+----
+
+Установите `sysroot`, чтобы GDB мог подгрузить символы используемых динамических библиотек:
+
+[source, gdb]
+----
+set sysroot /opt/syntacore/sc-dt/2022.12-sp1/riscv-gcc/sysroot
+----
+
+Затем выставьте точку останова:
+
+[source, gdb]
+----
+b main
+----
+
+Продолжите выполнение программы:
+
+[source, gdb]
+----
+с
+----
+
+Теперь можно отлаживать программу, запущенную в эмуляторе.
+
+.Листинг консоли GDB после проделанных операций
+
+[source, console]
+----
+GNU gdb (GDB) 12.1.90.20220920-git
+Copyright (C) 2022 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "--host=x86_64-pc-linux-gnu --target=riscv64-unknown-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./main...
+(gdb) target remote localhost:12345
+Remote debugging using localhost:12345
+warning: remote target does not support file transfer, attempting to access files from local filesystem.
+warning: Unable to find dynamic linker breakpoint function.
+GDB will be unable to debug shared library initializers
+and track explicitly loaded dynamic code.
+0x0000004002804b40 in ?? ()
+(gdb) set sysroot /opt/syntacore/sc-dt/2022.12-sp1/riscv-gcc/sysroot
+Reading symbols from /opt/syntacore/sc-dt/2022.12-sp1/riscv-gcc/sysroot/lib/ld-linux-riscv64-lp64d.so.1...
+(gdb) b main
+Breakpoint 1 at 0x40000008e6: file main.c, line 30.
+(gdb) c
+Continuing.
+
+Breakpoint 1, main () at main.c:30
+30      srand(0); // reproducible PRNG
+(gdb)
+----
+
+ifdef::backend-html5[]
+++++
+<iframe width="100%" height="1000px" src="https://godbolt.org/e#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGIAJykrgAyeAyYAHI%2BAEaYxBIapAAOqAqETgwe3r4ByanpAqHhUSyx8VyJdpgOGUIETMQEWT5%2BgVU1AnUNBEWRMXEJtvWNzTltwz1hfaUDFQCUtqhexMjsHOYAzGHI3lgA1CYbbgoE6LR40QB0CIfYJhoAgpvbu5gHRyf4qNe3909mWwYOy8%2B0ObjYLBIAE8fhs7o9nkDXu83I42LD4f9AcDQUcWGJaKhkBi/n80AwTns0gAvTAAfQIewi7wAInszBpOZzDlZHuTKTT6YyANKs9lcnmkx4EKFJTBYKh7KiEpiM1a0WgMyXS2XyzCK9WaxkAKj2hrpSQIxC1GwsewOCL5mA1DL26FQBAtxAwXgcEHNlutjKYpDNzs1gdd0VDgtdDDmBwA7LyHvb7ebGcQxRptam0/wsxBY4y8NmeXtS2C9gxy9ZrHgEyZk380629lm6xs2UwTABWCx4Pts03RPsDoe51tNlkttPETAEZYMdu56dSh4Bq2uglE1WYCCN5uPVuboPtsX%2B8MM40J/EaolFvC01BUS8uggJ00ROblh15%2B0Fnsj60q6lZdnsXDlmBbhMrWlj1oeKZtnOY6Dr2bKHGyb5GgmEDMqa7aGOgB57AA9HsABKDwRCydIALIPAAGj%2Btqzvaa7HnOC5LiurEIomM6Og8YSMviYQkU2SFpgoxBERAGgsXapHkfOSTeugvoXPQezKBREQAOJsWGLqRsGYo7qIBD7opRmnlG5n3pZ1m1px6ZXpmXBlnx/5moSyAANauoymG%2BUS/kHr%2B7GuUqJBAcWFZeXa0F7MKcFWJYDZJlJyEiXsqgXsFZi9kBlaWBBcyKWR5EKKgbDVv0WZEDFKxvO6npqT6DhmgSRmtsQnmdmybVep1BAQHlBxmAAbOy7wAGJ7EwewgHs0YTeYM0DRsC3RMti2ht%2Bk5ptOU7Re6XjRNpaKYFtWHnZdmBzP6fnhXMAC0H6kW4wQAPJuMKQh0so2AUXSQjYG4R1RT5akia%2B5hmOYvaXBswB9m4NZFSjaO9hjCO9Wmob9QT9qhtdXA2UJrZUPO%2B4QAAbqgeDoHsN5MJTPk05gdOM8zrNzNEHN9dxxDLjm3nThwCy0Jwva8H4HBaKQqCcJD8FlTVyyrJNGw8KQBCaFLCz%2BSAvaJDLHCSPLhvK5wvAKCAiQG4rUukHAsBIGgLBJHQcTkJQXs%2B/Q8Q7IYwBcFNnKkFg9N4KsABqeCYAA7j9coK3rNC0FZxAOxA0Q29EYQNFCnB60XzDEFCP3RNo1TO3rXtsIIP0MLQpcu9HmDRF4wBuASDvcLwWD4kY4id/g841PTmCD0rmCqNUXhWWXvAic6NvnNEslVx4WA21aeAsKvCzKkwwAKInKdp4wq8yIIIhiOwUj3/IShqDbuhcPoYcoHWlj6AuA7SACxUCWgyIPN6P0Ni8FQDPYgxBmaz3gAsdojhnAQFcKMPwXBv4hCmCUMoEgzB5DSOgzIngWgSG/ikMhGReiENmCQtBtQJjYOobYZ09dWHdAYQ1YhQxujsNwYIxofCZjlDMKgpYLUJDS1ltbTuKsOB5QABxTTelNSQvkw4QSmpcDQBigK4EILFTYFNeDOy0BVUgJszb6E4FbUgCslbKPto7fWhsbEWzMIo1xdtPEuxsfAtIzhJBAA"></iframe>
+++++
+endif::[]
+
+== Оптимизация
+
+Рассмотрите листинги ассемблерного кода, полученные Clang при разных уровнях оптимизации,
+выпонив следующие команды:
+
+* без оптимизаций
++
+[source, sh]
+----
+clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -S -o main.s main.c
+----
+
+* с флагом `-O1`
++
+[source, sh]
+----
+clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -S -o main-O1.s main.c -O1
+----
+
+* с флагом `-O2`
++
+[source, sh]
+----
+clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -S -o main-O2.s main.c -O2
+----
+ 
+Будет получен следующий ассемблерный код для функции `dot_product`:
+
+.Компиляция без оптимизаций
+[source, armasm, opts=linenums]
+----
+dot_product:
+# %bb.0:
+  addi  sp, sp, -64
+  sd  ra, 56(sp)
+  sd  s0, 48(sp)
+  addi  s0, sp, 64
+  sd  a0, -24(s0)
+  sd  a1, -32(s0)
+  sd  a2, -40(s0)
+  li  a0, 0
+  sw  a0, -44(s0)
+  sd  a0, -56(s0)
+  j  .LBB0_1
+.LBB0_1:
+  ld  a0, -56(s0)
+  ld  a1, -40(s0)
+  bgeu  a0, a1, .LBB0_4
+  j  .LBB0_2
+.LBB0_2:
+  ld  a0, -24(s0)
+  ld  a1, -56(s0)
+  slli  a1, a1, 2
+  add  a0, a0, a1
+  flw  ft0, 0(a0)
+  ld  a0, -32(s0)
+  add  a0, a0, a1
+  flw  ft1, 0(a0)
+  flw  ft2, -44(s0)
+  fmadd.s  ft0, ft0, ft1, ft2
+  fsw  ft0, -44(s0)
+  j  .LBB0_3
+.LBB0_3:
+  ld  a0, -56(s0)
+  addi  a0, a0, 1
+  sd  a0, -56(s0)
+  j  .LBB0_1
+.LBB0_4:
+  flw  fa0, -44(s0)
+  ld  ra, 56(sp)
+  ld  s0, 48(sp)
+  addi  sp, sp, 64
+  ret
+
+----
+
+В строках 3 -- 12 происходит формирование кадра стека функции `dot_product`:
+выделяется необходимое для аргументов и локальных переменных место на стеке (строка 3),
+на стеке сохраняется адрес возврата и адрес предыдущего кадра (строки 4 -- 5),
+в регистр сохраняется адрес текущего кадра (строка 6),
+переданные аргуметы `a`, `b` и `n` загружаются на стек (строки 7 -- 9),
+локальные переменные `r` и `i` инициализируются нулями (строки 10 -- 12).
+
+В строках 15 -- 17 вычисляется, нужно ли выполнять очередную итерацию цикла:
+со стека в регистры загружаются значения переменных `i` и `n` (строки 15 -- 16),
+а затем сравниваются (строка 17).
+
+В строках 20 -- 30 происходит вычисление очередной итерации цикла:
+со стека в регистр загружается значение переменной `i` (строка 21),
+вычисляются адреса в памяти значений `a[i]` и `b[i]` и они загружаются в регистры (строки 20, 22 -- 27),
+со стека в регистр загружается значение переменной `r` (строка 28),
+к значению `r` в прибавляется результат `a[i] * b[i]` (строка 29),
+новое значение `r` записывается на стек (строка 30).
+
+В строках 33 -- 35 происходит увеличение счётчика цикла `i` после выполнения очередной итерации:
+со стека в регистр загружается значение переменной `i` (строка 33),
+значение переменной `i` увеличивается на `1` (строка 34),
+новое значение переменной `i` записывается на стек (строка 35).
+
+В строках 38 -- 42 происходит возврат результата после выполнения цикла:
+со стека в регистр, через который возвращается результат, загружается значение переменной `r` (строка 38),
+со стека в регистры загружаются адрес возврата и адрес предыдущего кадра стека (строки 39 -- 40),
+очищается кадр стека (строка 41),
+происходит возврат из функции `dot_product` (строка 42).
+
+.Компиляция с флагом `-O1`
+[source, armasm, opts=linenums]
+----
+dot_product:
+# %bb.0:
+  fmv.w.x  fa0, zero
+  beqz  a2, .LBB0_2
+.LBB0_1:
+  flw  ft0, 0(a0)
+  flw  ft1, 0(a1)
+  fmadd.s  fa0, ft0, ft1, fa0
+  addi  a2, a2, -1
+  addi  a1, a1, 4
+  addi  a0, a0, 4
+  bnez  a2, .LBB0_1
+.LBB0_2:
+  ret
+----
+
+Полученный ассемблерный код значительно короче, полученного без применения оптимизаций.
+Это получается засчёт того, что на стеке не выделяется место под аргуметы и локальные переменные,
+и все вычисления производятся с регистрами без обращений к памяти.
+
+В строке 3 происходит инициализация регистра, в котором хранится значение `r`, нулём.
+
+В строке 4 происходит сравнение регистра, в котором хранится значение `n`, с нулём, чтобы начать выполнение цикла.
+
+В строках 6 -- 7 происходит загрузка в регистры значений `a[0]` и `b[0]`.
+
+В строке 8 к значению `r` в прибавляется результат `a[0] * b[0]`.
+
+В строке 9 значение `n` уменьшается на 1.
+
+В строках 10 -- 11 увеличиваются значения регистров, в которых хранятся адреса массивов `a` и `b`,
+чтобы на следующей итерации `a[0]` и `b[0]` соответствовали следующим элементам массивов.
+
+В строке 12 происходит сравнение регистра, в котором хранится значение `n`, с нулём,
+чтобы узнать, нужно ли выполнять очередную итерацию цикла.
+
+В строке 14 происходит возврат из функции `dot_product`.
+
+Таким образом, данный код работает аналогично неоптимизированному,
+однако выполняет гораздо меньше «дорогих» обращений к памяти.
+
+.Компиляция с флагом `-O2`
+[source, armasm, opts=linenums]
+----
+dot_product:                            # @dot_product
+# %bb.0:
+  beqz  a2, .LBB0_4
+# %bb.1:
+  li  a3, 8
+  andi  a6, a2, 7
+  bgeu  a2, a3, .LBB0_5
+# %bb.2:
+  fmv.w.x  fa0, zero
+  li  a2, 0
+  bnez  a6, .LBB0_8
+.LBB0_3:
+  ret
+.LBB0_4:
+  fmv.w.x  fa0, zero
+  ret
+.LBB0_5:
+  andi  a2, a2, -8
+  fmv.w.x  fa0, zero
+  li  a4, 0
+  neg  a2, a2
+  addi  a5, a1, 16
+  addi  a3, a0, 16
+.LBB0_6:                                # =>This Inner Loop Header: Depth=1
+  flw  ft0, -16(a3)
+  addi  a4, a4, -8
+  flw  ft1, -16(a5)
+  flw  ft2, -12(a5)
+  fmadd.s  ft0, ft0, ft1, fa0
+  flw  ft1, -12(a3)
+  fmadd.s  ft0, ft1, ft2, ft0
+  flw  ft1, -8(a3)
+  flw  ft2, -8(a5)
+  fmadd.s  ft0, ft1, ft2, ft0
+  flw  ft1, -4(a3)
+  flw  ft2, -4(a5)
+  fmadd.s  ft0, ft1, ft2, ft0
+  flw  ft1, 0(a3)
+  flw  ft2, 0(a5)
+  fmadd.s  ft0, ft1, ft2, ft0
+  flw  ft1, 4(a3)
+  flw  ft2, 4(a5)
+  fmadd.s  ft0, ft1, ft2, ft0
+  flw  ft1, 8(a3)
+  flw  ft2, 8(a5)
+  fmadd.s  ft0, ft1, ft2, ft0
+  flw  ft1, 12(a3)
+  flw  ft2, 12(a5)
+  addi  a5, a5, 32
+  addi  a3, a3, 32
+  fmadd.s  fa0, ft1, ft2, ft0
+  bne  a2, a4, .LBB0_6
+# %bb.7:
+  neg  a2, a4
+  beqz  a6, .LBB0_3
+.LBB0_8:
+  slli  a2, a2, 2
+  add  a3, a0, a2
+  flw  ft0, 0(a3)
+  add  a3, a1, a2
+  flw  ft1, 0(a3)
+  li  a3, 1
+  fmadd.s  fa0, ft0, ft1, fa0
+  beq  a6, a3, .LBB0_3
+# %bb.9:
+  addi  a3, a2, 4
+  add  a4, a0, a3
+  add  a3, a3, a1
+  flw  ft1, 0(a3)
+  li  a3, 2
+  flw  ft0, 0(a4)
+  fmadd.s  fa0, ft0, ft1, fa0
+  beq  a6, a3, .LBB0_3
+# %bb.10:
+  addi  a3, a2, 8
+  add  a4, a0, a3
+  add  a3, a3, a1
+  flw  ft1, 0(a3)
+  li  a3, 3
+  flw  ft0, 0(a4)
+  fmadd.s  fa0, ft0, ft1, fa0
+  beq  a6, a3, .LBB0_3
+# %bb.11:
+  addi  a3, a2, 12
+  add  a4, a0, a3
+  add  a3, a3, a1
+  flw  ft1, 0(a3)
+  li  a3, 4
+  flw  ft0, 0(a4)
+  fmadd.s  fa0, ft0, ft1, fa0
+  beq  a6, a3, .LBB0_3
+# %bb.12:
+  addi  a3, a2, 16
+  add  a4, a0, a3
+  add  a3, a3, a1
+  flw  ft1, 0(a3)
+  li  a3, 5
+  flw  ft0, 0(a4)
+  fmadd.s  fa0, ft0, ft1, fa0
+  beq  a6, a3, .LBB0_3
+# %bb.13:
+  addi  a3, a2, 20
+  add  a4, a0, a3
+  add  a3, a3, a1
+  flw  ft1, 0(a3)
+  li  a3, 6
+  flw  ft0, 0(a4)
+  fmadd.s  fa0, ft0, ft1, fa0
+  beq  a6, a3, .LBB0_3
+# %bb.14:
+  addi  a2, a2, 24
+  add  a0, a0, a2
+  flw  ft0, 0(a0)
+  add  a0, a1, a2
+  flw  ft1, 0(a0)
+  fmadd.s  fa0, ft0, ft1, fa0
+  ret
+----
+
+В данном случае порождается гораздо больше кода, чем при уровне оптимизаций `-O1`.
+
+Сначала проверяется случай `n == 0` (строка 3),
+если это так, регистр, через который происходит возврат результата,
+инициализируется нулём и происходит возврат из функции `dot_product` (строки 15 -- 16).
+
+Затем проверяется случай, когда `n >= 8` (строки 5 и 7),
+если это не так (`n < 8`), происходит переход к строкам 57 -- 117.
+Эти строки содержат 7 блоков, в каждом происходит вычисление `r += a[i] * b[i]` и проверяется,
+нужно ли закончить и вернуть результат.
+
+Если же `n >= 8`, то вычисления производятся блоками по 8 операций (строки 25 -- 51):
+
+[source, c]
+----
+r += a[i + 0] * b[i + 0]; r += a[i + 1] * b[i + 1]; ... r += a[i + 7] * b[i + 7];
+----
+
+То есть компилятор приозвёл «раскрутку цикла».
+Важно отметить, что в таком случае проверять, нужно ли остановиться, достаточно один раз на весь блок (строка 52),
+а не на каждую операцию `r += a[i] * b[i]`.
+Это положительно сказывается на производительности, так как условные переходы -- «дорогая» операция.
+В момент, когда осталось выполнить меньше `8` операций, проверяется, выполнены ли все вычисления (строки 54 -- 55),
+если да, происходит возврат из функции `dot_product` (строка 13),
+иначе -- происходит переход к случаю, когда надо вычислить менее `8` операций (строки 57 -- 117).
+
+[WARNING]
+====
+Поскольку блоки вычислений в строках 25 -- 51 однотипны и данные лежат в памяти упорядоченно,
+вычисления могут быть векторизованы.
+Однако на момент создания этой лабораторной работы версия компилятора в _Syntacore Kit_ не векторизует вычисления с
+числами с плавающей запятой.
+
+// ссылка на html-версию лабораторной с интерактивными примерами с godbolt.
+====
+
+Немного изменим пример, чтобы продемонстрировать, как компилятор оптимизирует код с помощью векторных инструкций.
+
+Измените следующие строки в `main.c`:
+
+* 10 -- `typedef int cell_t;`
+* 41 -- `+printf("%i\n%.3g\n"+`
+
+Чтобы получить векторные инструкции, необходимо указать векторное расширение в архитектуре, передав опцию `-march=rv64gcv`.
+Таким образом, получаем следующую команду:
+
+[source, sh]
+----
+clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -S -o main-O3v.s main.c -march=rv64gcv -O3
+----
+
+.CLang с опциями -O3 и -march=rv64gcv
+[source, armasm, opts=linenums]
+----
+dot_product:                            # @dot_product
+# %bb.0:
+  beqz  a2, .LBB0_3
+# %bb.1:
+  csrr  a3, vlenb
+  srli  t0, a3, 1
+  bgeu  a2, t0, .LBB0_4
+# %bb.2:
+  li  a7, 0
+  li  a3, 0
+  j  .LBB0_7
+.LBB0_3:
+  li  a0, 0
+  ret
+.LBB0_4:
+  addi  a4, t0, -1
+  slli  t1, a3, 1
+  and  a6, a2, a4
+  add  t2, a0, a3
+  add  t3, a1, a3
+  vsetvli  a3, zero, e32, m1, ta, ma
+  sub  a7, a2, a6
+  li  a5, 0
+  vmv.v.i  v8, 0
+  mv  a3, a7
+  vmv.v.i  v9, 0
+.LBB0_5:                                # =>This Inner Loop Header: Depth=1
+  add  a4, a0, a5
+  add  t4, t2, a5
+  vl1re32.v  v10, (a4)
+  add  a4, a1, a5
+  vl1re32.v  v11, (a4)
+  add  a4, t3, a5
+  vl1re32.v  v12, (t4)
+  vl1re32.v  v13, (a4)
+  sub  a3, a3, t0
+  add  a5, a5, t1
+  vmacc.vv  v8, v11, v10
+  vmacc.vv  v9, v13, v12
+  bnez  a3, .LBB0_5
+# %bb.6:
+  vadd.vv  v8, v9, v8
+  vmv.s.x  v9, zero
+  vredsum.vs  v8, v8, v9
+  vmv.x.s  a3, v8
+  beqz  a6, .LBB0_9
+.LBB0_7:
+  slli  a4, a7, 2
+  sub  a2, a2, a7
+  add  a1, a1, a4
+  add  a0, a0, a4
+.LBB0_8:                                # =>This Inner Loop Header: Depth=1
+  lw  a4, 0(a0)
+  addi  a2, a2, -1
+  lw  a5, 0(a1)
+  addi  a1, a1, 4
+  addi  a0, a0, 4
+  mulw  a4, a5, a4
+  addw  a3, a3, a4
+  bnez  a2, .LBB0_8
+.LBB0_9:
+  mv  a0, a3
+  ret
+----
+
+В данном ассемблерном коде инструкции и регистры, начинающиеся с буквы `v` относятся к
+https://github.com/riscv/riscv-v-spec/tree/master[векторному расширению (V) {riscv}].
+
+Сначала на основании соотношения длины векторных регистров в байтах и величины `n` принимается решение об использовании векторов (строки 5 -- 7).
+
+Если векторы не используются, то вычисления производятся с помощью обычного цикла (строки 53 -- 60).
+
+Если надо использовать векторы, то в 21 строке выставляется максимальная длина для используемых векторов,
+а в строках 24 и 26 инициализируются векторные регистры, в которых будет аккумулироваться вычисляемые значения.
+Далее в цикле происходят вычисления с использованием векторов (строки 28 -- 40).
+После окончания цикла накопленые в векторных регистрах результаты складываются и записываются в обычный регистр (строки 42 -- 45).
+Если ещё остались необработанные элементы исходных массивов, то они обрабатываются обычным циклом (строки 48 -- 60).
+
+
+Попробуйте скомпилироватьс программу теми же опциями (`-O3` и `-march=rv64gcv`), используя систему компиляции GCC.
+
+.GCC с опциями -O3 и -march=rv64gcv
+[source, armasm, opts=linenums]
+----
+dot_product:
+  beq  a2,zero,.L4
+  slli  a2,a2,2
+  mv  a5,a0
+  add  a2,a0,a2
+  li  a0,0
+.L3:
+  lw  a3,0(a5)
+  lw  a4,0(a1)
+  addi  a5,a5,4
+  addi  a1,a1,4
+  mulw  a4,a4,a3
+  addw  a0,a4,a0
+  bne  a2,a5,.L3
+  ret
+.L4:
+  li  a0,0
+  ret
+----
+
+GCC не породил векторизованный код.
+Различные системы компиляции имеют неодинаковую степень поддержки различных расширений {riscv}.
+Обратите на это внимание при выборе системы компиляции для своих проектов.

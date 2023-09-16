@@ -97,4 +97,8 @@ do
 
   "$BASEDIR/release_file.sh" "$TAG" -t "$TITLE" "$BUILDDIR/${OUT_FILENAME}.pdf" "${LABEL} (pdf)"
   "$BASEDIR/release_file.sh" "$TAG" -t "$TITLE" "$BUILDDIR/${OUT_FILENAME}.docx" "${LABEL} (docx)"
+  if [ -f "$BUILDDIR/${OUT_FILENAME}_Training.pdf" ]; then
+    "$BASEDIR/release_file.sh" "$TAG" -t "$TITLE" "$BUILDDIR/${OUT_FILENAME}_Training.pdf" "${LABEL} лабораторная(pdf)"
+    "$BASEDIR/release_file.sh" "$TAG" -t "$TITLE" "$BUILDDIR/${OUT_FILENAME}_Training.docx" "${LABEL} лабораторная (docx)"
+  fi
 done < "$COURSES"
