@@ -83,6 +83,17 @@ int main() {
 
 == Кросс-компиляция и запуск
 
+[WARNING]
+====
+Перед выполнением команд проверьте, определены ли переменная `$RISCV` и псевдоним `qemu-riscv64`.
+Если нет, определите их самостоятельно, добавив в файл `~/.bashrc` следующие строки (_зависящие от версии виртуальной машины_):
+[source, sh]
+----
+export RISCV="/opt/syntacore/sc-dt/2023.08/riscv-gcc"
+alias qemu-riscv64='/opt/syntacore/sc-dt/2023.08/tools/bin/qemu-riscv64'
+----
+====
+
 Скомпилируйте программу под RISC-V. В _Syntacore Kit_ для систем компиляции GCC и CLang это делается следующими способами:
 
 [cols="a,a", frame="none", grid="none"]
