@@ -190,7 +190,7 @@ b main
 
 .Листинг консоли GDB после проделанных операций
 
-[source, console]
+[listing]
 ----
 GNU gdb (GDB) 12.1.90.20220920-git
 Copyright (C) 2022 Free Software Foundation, Inc.
