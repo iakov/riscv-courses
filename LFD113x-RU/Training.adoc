@@ -13,7 +13,7 @@ endif::[]
 :icons: font
 :riscv: RISC&#8209;V
 
-Данная лабораторная работа подготовлена по заказу https://riscv-alliance.ru/[Альянса {riscv}],
+Данная лабораторная работа подготовлена Кириленко Яковом Александровичем по заказу https://riscv-alliance.ru/[Альянса {riscv}],
 допускается к использованию под лицензией https://creativecommons.org/licenses/by/4.0/deed.ru[CC BY 4.0].
 
 [WARNING]
