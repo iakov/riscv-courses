@@ -12,7 +12,7 @@
 Данный материал является переводом и адаптацией учебного курса {riscv} Toolchain and Compiler Optimization Techniques (LFD113x),
 The Linux Foundation, https://training.linuxfoundation.org/training/risc-v-toolchain-and-compiler-optimization-techniques-lfd113x/,
 распространяемого под лицензией https://creativecommons.org/licenses/by/4.0/[CC BY 4.0].
-Перевод и адаптация выполнены по заказу https://riscv-alliance.ru/[Альянса {riscv}],
+Перевод и адаптация выполнены Кириленко Яковом Александровичем по заказу https://riscv-alliance.ru/[Альянса {riscv}],
 допускается к использованию под лицензией https://creativecommons.org/licenses/by/4.0/deed.ru[CC BY 4.0].
 
 Обращаем внимание читателя, что данный текст не является строгим академическим изложением,
