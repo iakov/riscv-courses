@@ -21,7 +21,6 @@ endif::[]
 Приведённые ниже команды рассчитаны на выполнение в рабочей среде _Syntacore Kit_,
 распространяемой https://riscv-alliance.ru/[Альянсом {riscv}] в образовательных целях.
 Обратите внимание, что в другом окружении приведённые примеры команд могут не работать или работать иначе.
-// ссылка на html-версию лабораторной с интерактивными примерами с godbolt.
 ====
 
 Рассмотрите программу, считающую скалярное произведение векторов.
@@ -85,12 +84,27 @@ int main() {
 
 [WARNING]
 ====
-Перед выполнением команд проверьте, определены ли переменная `$RISCV` и псевдоним `qemu-riscv64`.
-Если нет, определите их самостоятельно, добавив в файл `~/.bashrc` следующие строки (_зависящие от версии виртуальной машины_):
+Перед выполнением команд проверьте, определены ли переменные `GCC_ROOT` или `RISCV`
+и указан ли в переменной `PATH` путь `/opt/syntacore/sc-dt/2023.08/tools/` (`2023.08` -- версия Syntacore Kit):
 [source, sh]
 ----
-export RISCV="/opt/syntacore/sc-dt/2023.08/riscv-gcc"
-alias qemu-riscv64='/opt/syntacore/sc-dt/2023.08/tools/bin/qemu-riscv64'
+env | grep 'GCC_ROOT\|RISCV'
+echo $PATH
+----
+
+Если нет, добавьте в файл `~/.bashrc` следующие строки (*пути зависят от версии используемой рабочей среды*):
+
+.Если переменая RISCV не определена
+[source, sh]
+----
+export GCC_ROOT="/opt/syntacore/sc-dt/2023.08/riscv-gcc"
+export PATH=$PATH:/opt/syntacore/sc-dt/2023.08/tools/bin
+----
+.Если переменая RISCV определена
+[source, sh]
+----
+export GCC_ROOT=$RISCV
+export PATH=$PATH:/opt/syntacore/sc-dt/2023.08/tools/bin
 ----
 ====
 
@@ -108,7 +122,7 @@ riscv64-unknown-linux-gnu-gcc main.c -o main
 |
 [source, sh]
 ----
-clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -o main main.c
+clang -target riscv64-unknown-linux-gnu --sysroot="$GCC_ROOT/sysroot" --gcc-toolchain="$GCC_ROOT" -o main main.c
 ----
 |====
 
@@ -130,7 +144,7 @@ file ./main
 
 [source, sh]
 ----
-qemu-riscv64 -L "$RISCV/sysroot" ./main
+qemu-riscv64 -L "$GCC_ROOT/sysroot" ./main
 ----
 
 == Отладка
@@ -149,7 +163,7 @@ riscv64-unknown-linux-gnu-gcc -g main.c -o main
 |
 [source, sh]
 ----
-clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -g -o main main.c
+clang -target riscv64-unknown-linux-gnu --sysroot="$GCC_ROOT/sysroot" --gcc-toolchain="$GCC_ROOT" -g -o main main.c
 ----
 |====
 
@@ -158,7 +172,7 @@ clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolcha
 
 [source, sh]
 ----
-qemu-riscv64 -L $RISCV/sysroot -g 12345 ./main
+qemu-riscv64 -L $GCC_ROOT/sysroot -g 12345 ./main
 ----
 
 Он будет ждать подключения GDB. 
@@ -239,12 +253,6 @@ Breakpoint 1, 0x000000000001077e in main ()
 (gdb)
 ----
 
-ifdef::backend-html5[]
-++++
-<iframe width="100%" height="1000px" src="https://godbolt.org/e#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGIAJykrgAyeAyYAHI%2BAEaYxBIapAAOqAqETgwe3r4ByanpAqHhUSyx8VyJdpgOGUIETMQEWT5%2BgVU1AnUNBEWRMXEJtvWNzTltwz1hfaUDFQCUtqhexMjsHOYAzGHI3lgA1CYbbgoE6LR40QB0CIfYJhoAgpvbu5gHRyf4qNe3909mWwYOy8%2B0ObjYLBIAE8fhs7o9nkDXu83I42LD4f9AcDQUcWGJaKhkBi/n80AwTns0gAvTAAfQIewi7wAInszBpOZzDlZHuTKTT6YyANKs9lcnmkx4EKFJTBYKh7KiEpiM1a0WgMyXS2XyzCK9WaxkAKj2hrpSQIxC1GwsewOCL5mA1DL26FQBAtxAwXgcEHNlutjKYpDNzs1gdd0VDgtdDDmBwA7LyHvb7ebGcQxRptam0/wsxBY4y8NmeXtS2C9gxy9ZrHgEyZk380629lm6xs2UwTABWCx4Pts03RPsDoe51tNlkttPETAEZYMdu56dSh4Bq2uglE1WYCCN5uPVuboPtsX%2B8MM40J/EaolFvC01BUS8uggJ00ROblh15%2B0Fnsj60q6lZdnsXDlmBbhMrWlj1oeKZtnOY6Dr2bKHGyb5GgmEDMqa7aGOgB57AA9HsABKDwRCydIALIPAAGj%2Btqzvaa7HnOC5LiurEIomM6Og8YSMviYQkU2SFpgoxBERAGgsXapHkfOSTeugvoXPQezKBREQAOJsWGLqRsGYo7qIBD7opRmnlG5n3pZ1m1px6ZXpmXBlnx/5moSyAANauoymG%2BUS/kHr%2B7GuUqJBAcWFZeXa0F7MKcFWJYDZJlJyEiXsqgXsFZi9kBlaWBBcyKWR5EKKgbDVv0WZEDFKxvO6npqT6DhmgSRmtsQnmdmybVep1BAQHlBxmAAbOy7wAGJ7EwewgHs0YTeYM0DRsC3RMti2ht%2Bk5ptOU7Re6XjRNpaKYFtWHnZdmBzP6fnhXMAC0H6kW4wQAPJuMKQh0so2AUXSQjYG4R1RT5akia%2B5hmOYvaXBswB9m4NZFSjaO9hjCO9Wmob9QT9qhtdXA2UJrZUPO%2B4QAAbqgeDoHsN5MJTPk05gdOM8zrNzNEHN9dxxDLjm3nThwCy0Jwva8H4HBaKQqCcJD8FlTVyyrJNGw8KQBCaFLCz%2BSAvaJDLHCSPLhvK5wvAKCAiQG4rUukHAsBIGgLBJHQcTkJQXs%2B/Q8Q7IYwBcFNnKkFg9N4KsABqeCYAA7j9coK3rNC0FZxAOxA0Q29EYQNFCnB60XzDEFCP3RNo1TO3rXtsIIP0MLQpcu9HmDRF4wBuASDvcLwWD4kY4id/g841PTmCD0rmCqNUXhWWXvAic6NvnNEslVx4WA21aeAsKvCzKkwwAKInKdp4wq8yIIIhiOwUj3/IShqDbuhcPoYcoHWlj6AuA7SACxUCWgyIPN6P0Ni8FQDPYgxBmaz3gAsdojhnAQFcKMPwXBv4hCmCUMoEgzB5DSOgzIngWgSG/ikMhGReiENmCQtBtQJjYOobYZ09dWHdAYQ1YhQxujsNwYIxofCZjlDMKgpYLUJDS1ltbTuKsOB5QABxTTelNSQvkw4QSmpcDQBigK4EILFTYFNeDOy0BVUgJszb6E4FbUgCslbKPto7fWhsbEWzMIo1xdtPEuxsfAtIzhJBAA"></iframe>
-++++
-endif::[]
-
 == Оптимизация
 
 Рассмотрите листинги ассемблерного кода, полученные Clang при разных уровнях оптимизации,
@@ -254,21 +262,21 @@ endif::[]
 +
 [source, sh]
 ----
-clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -S -o main.s main.c
+clang -target riscv64-unknown-linux-gnu --sysroot="$GCC_ROOT/sysroot" --gcc-toolchain="$GCC_ROOT" -S -o main.s main.c
 ----
 
 * с флагом `-O1`
 +
 [source, sh]
 ----
-clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -S -o main-O1.s main.c -O1
+clang -target riscv64-unknown-linux-gnu --sysroot="$GCC_ROOT/sysroot" --gcc-toolchain="$GCC_ROOT" -S -o main-O1.s main.c -O1
 ----
 
 * с флагом `-O2`
 +
 [source, sh]
 ----
-clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -S -o main-O2.s main.c -O2
+clang -target riscv64-unknown-linux-gnu --sysroot="$GCC_ROOT/sysroot" --gcc-toolchain="$GCC_ROOT" -S -o main-O2.s main.c -O2
 ----
  
 Будет получен следующий ассемблерный код для функции `dot_product`:
@@ -564,7 +572,7 @@ r += a[i + 0] * b[i + 0]; r += a[i + 1] * b[i + 1]; ... r += a[i + 7] * b[i + 7]
 
 [source, sh]
 ----
-clang -target riscv64-unknown-linux-gnu --sysroot="$RISCV/sysroot" --gcc-toolchain="$RISCV" -S -o main-O3v.s main.c -march=rv64gcv -O3
+clang -target riscv64-unknown-linux-gnu --sysroot="$GCC_ROOT/sysroot" --gcc-toolchain="$GCC_ROOT" -S -o main-O3v.s main.c -march=rv64gcv -O3
 ----
 
 .CLang с опциями -O3 и -march=rv64gcv
