@@ -1,0 +1,473 @@
+ifdef::env-github[]
+:imagesdir: ../images
+:tip-caption: :bulb:
+:note-caption: :memo:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= Лабораторная работа
+:source-highlighter: rouge
+:doctype: book
+:icons: font
+:riscv: RISC&#8209;V
+
+Данная лабораторная работа подготовлена Кириленко Яковом Александровичем по заказу https://riscv-alliance.ru/[Альянса {riscv}],
+допускается к использованию под лицензией https://creativecommons.org/licenses/by/4.0/deed.ru[CC BY 4.0].
+
+[WARNING]
+====
+Приведённые ниже команды рассчитаны на выполнение в рабочей среде _Syntacore Kit_,
+распространяемой https://riscv-alliance.ru/[Альянсом {riscv}] в образовательных целях.
+Обратите внимание, что в другом окружении приведённые примеры команд могут не работать или работать иначе.
+====
+
+== Установка исходного кода FreeRTOS
+
+В данной работе используется релиз `FreeRTOSv202212.01`.
+С целью воспроизводимости лабораторной рекомендуется скачать его следующим образом:
+
+.Скачивание
+[source, sh]
+----
+wget https://github.com/FreeRTOS/FreeRTOS/releases/download/202212.01/FreeRTOSv202212.01.zip
+----
+
+.Распаковка
+[source, sh]
+----
+unzip FreeRTOSv202212.01.zip && mv FreeRTOSv202212.01 FreeRTOS
+----
+
+== Сборка и запуск демонстрационной версии приложения
+
+[WARNING]
+====
+Перед выполнением команд проверьте, указан ли в переменной `PATH` путь `/opt/syntacore/sc-dt/2023.08/#riscv-gcc/bin#` (`2023.08` -- версия Syntacore Kit):
+[source, sh]
+----
+echo $PATH | grep riscv-gcc/bin
+----
+
+Если нет, добавьте в файл `~/.bashrc` следующую строку (_путь зависит от версии используемой рабочей среды_):
+
+[source, sh]
+----
+export PATH=$PATH:/opt/syntacore/sc-dt/2023.08/riscv-gcc/bin
+----
+====
+
+Перейдите в каталог с демонстрационным приложением `RISC-V-Qemu-virt_GCC`.
+[source, sh]
+----
+cd FreeRTOS/FreeRTOS/Demo/RISC-V-Qemu-virt_GCC/
+----
+
+Попробуйте собрать демо.
+[source, sh]
+----
+make
+----
+
+При попытке сборки будет получено следующее сообщение об ошибке:
+[listing]
+----
+main.c: Assembler messages:
+main.c:53: Error: unrecognized opcode `csrw mtvec,a5'
+main.c:84: Error: unrecognized opcode `csrc mstatus,8'
+main.c:111: Error: unrecognized opcode `csrc mstatus,8'
+main.c:125: Error: unrecognized opcode `csrc mstatus,8'
+make: *** [Makefile:62: build/main.o] Error 1
+----
+
+Обратите внимание, что в `Makefile` указаны флаги компилятора и компоновщика `-march=rv32imac`,
+задающие архитектуру набора команд `rv32imac` со стандартными расширениями.
+Однако перечисленные в листинге инструкции являются частью расширения `Zicsr`,
+вынесенного из базовой ISA версии выше `2.2`.
+И для `gcc` версии `11.1.0` и выше необходимо отдельно указывать расширение `Zicsr`.
+
+Итак, чтобы собрать демо, необходимо в `Makefile` в строках `17` и `24` заменить `-march=rv32imac` на `-march=rv32ima_zicsr`.
+
+.Makefile
+[source, make, opts=linenums]
+----
+CROSS   = riscv64-unknown-elf-
+CC      = $(CROSS)gcc
+OBJCOPY = $(CROSS)objcopy
+ARCH    = $(CROSS)ar
+
+BUILD_DIR       = build
+RTOS_SOURCE_DIR = $(abspath ../../Source)
+DEMO_SOURCE_DIR = $(abspath ../Common/Minimal)
+
+CPPFLAGS = \
+	-D__riscv_float_abi_soft \
+	-DportasmHANDLE_INTERRUPT=handle_trap \
+	-I . -I ../Common/include \
+	-I $(RTOS_SOURCE_DIR)/include \
+	-I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V \
+	-I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/chip_specific_extensions/RV32I_CLINT_no_extensions
+CFLAGS  = -march=rv32imac_zicsr -mabi=ilp32 -mcmodel=medany \
+	-Wall \
+	-fmessage-length=0 \
+	-ffunction-sections \
+	-fdata-sections \
+	-fno-builtin-printf
+LDFLAGS = -nostartfiles -Tfake_rom.lds \
+	-march=rv32imac_zicsr -mabi=ilp32 -mcmodel=medany \
+	-Xlinker --gc-sections \
+	-Xlinker --defsym=__stack_size=300 \
+	-Xlinker -Map=RTOSDemo.map
+
+ifeq ($(DEBUG), 1)
+    CFLAGS += -Og -ggdb3
+else
+    CFLAGS += -O2
+endif
+
+SRCS = main.c main_blinky.c riscv-virt.c ns16550.c \
+	$(DEMO_SOURCE_DIR)/EventGroupsDemo.c \
+	$(DEMO_SOURCE_DIR)/TaskNotify.c \
+	$(DEMO_SOURCE_DIR)/TimerDemo.c \
+	$(DEMO_SOURCE_DIR)/blocktim.c \
+	$(DEMO_SOURCE_DIR)/dynamic.c \
+	$(DEMO_SOURCE_DIR)/recmutex.c \
+	$(RTOS_SOURCE_DIR)/event_groups.c \
+	$(RTOS_SOURCE_DIR)/list.c \
+	$(RTOS_SOURCE_DIR)/queue.c \
+	$(RTOS_SOURCE_DIR)/stream_buffer.c \
+	$(RTOS_SOURCE_DIR)/tasks.c \
+	$(RTOS_SOURCE_DIR)/timers.c \
+	$(RTOS_SOURCE_DIR)/portable/MemMang/heap_4.c \
+	$(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/port.c
+
+ASMS = start.S vector.S\
+	$(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/portASM.S
+
+OBJS = $(SRCS:%.c=$(BUILD_DIR)/%.o) $(ASMS:%.S=$(BUILD_DIR)/%.o)
+DEPS = $(SRCS:%.c=$(BUILD_DIR)/%.d) $(ASMS:%.S=$(BUILD_DIR)/%.d)
+
+$(BUILD_DIR)/RTOSDemo.axf: $(OBJS) fake_rom.lds Makefile
+	$(CC) $(LDFLAGS) $(OBJS) -o $@
+
+$(BUILD_DIR)/%.o: %.c Makefile
+	@mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -c $< -o $@
+
+$(BUILD_DIR)/%.o: %.S Makefile
+	@mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -c $< -o $@
+
+clean:
+	rm -rf $(BUILD_DIR)
+
+-include $(DEPS)
+----
+
+Снова соберите демо.
+
+[source, sh]
+----
+make
+----
+
+Теперь можно запустить демонстрационную версию приложения, имитирующего мигание светодиода.
+
+.Запуск приложения в qemu
+[source, sh]
+----
+qemu-system-riscv32 -nographic -machine virt -net none \
+    -chardev stdio,id=con,mux=on -serial chardev:con \
+    -mon chardev=con,mode=readline -bios none \
+    -smp 4 -kernel ./build/RTOSDemo.axf
+----
+.Вывод
+[listing]
+----
+Hello FreeRTOS!
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+0: Tx: Transfer1
+0: Rx: Blink1
+0: Tx: Transfer2
+0: Rx: Blink2
+----
+
+== Создание своего приложения
+
+=== Создание задач
+
+В этом же каталоге создадим файл `example.c`, создающий и запускающий две задачи `vTask1` и `vTask2` с одинаковым приоритетом. 
+
+.example.c
+[source, c, opts=linenums]
+----
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
+
+#include <stdio.h>
+
+#include "riscv-virt.h"
+#include "ns16550.h"
+
+#define mainDELAY_LOOP_COUNT		( 10000000 )
+#define exampleTASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
+
+
+void vTask1( void *pvParameters )
+{
+	const char *pcMessage = "Task 1 is running";
+	volatile unsigned long ul;
+
+	for( ;; )
+	{
+		vSendString( pcMessage );
+		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ ) { }
+	}
+}
+
+void vTask2( void *pvParameters )
+{
+	const char *pcMessage = "Task 2 is running";
+	volatile unsigned long ul;
+
+	for( ;; )
+	{
+		vSendString( pcMessage );
+		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ ) { }
+	}
+}
+
+
+int main_example( void )
+{
+	xTaskCreate( vTask1, "Task 1", configMINIMAL_STACK_SIZE * 2U, NULL,
+			exampleTASK_PRIORITY, NULL );
+	xTaskCreate( vTask2, "Task 2", configMINIMAL_STACK_SIZE * 2U, NULL,
+			exampleTASK_PRIORITY + 1, NULL );
+
+	vTaskStartScheduler();
+
+	return 0;
+}
+
+----
+
+Для запуска примера, измените следующие строки в файле `main.c`:
+
+* 33 -- `#define DEMO_EXAMPLE	1`
+* добавьте объявление `int main_example( void );`
+* в функции `main` замените
++
+[source, c]
+----
+#if defined(DEMO_BLINKY)
+	ret = main_blinky();
+#else
+#error "Please add or select demo."
+#endif
+----
+на
++
+[source, c]
+----
+#if defined(DEMO_BLINKY)
+	ret = main_blinky();
+#elif defined(DEMO_EXAMPLE)
+	ret = main_example();
+#else
+#error "Please add or select demo."
+#endif
+----
+
+
+В файле `Makefile` в 35 строку добавьте `example.c`:
+
+`SRCS = main.c main_blinky.c example.c riscv-virt.c ns16550.c \`
+
+Теперь приложение можно собрать и запустить аналогично предыдущему.
+
+.Вывод
+[listing]
+----
+Task 1 is running
+Task 2 is running
+Task 2 is running
+Task 1 is running
+Task 1 is running
+Task 2 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 1 is running
+Task 2 is running
+----
+
+=== Задание приоритетов
+
+Посмотрите, что получится, если задачам задать разные приоритеты.
+Это можно сделать, поменяв в 47 строке `exampleTASK_PRIORITY` на `exampleTASK_PRIORITY + 1`.
+
+При изменении приоритетов можно получить следующий вывод программы:
+
+[listing]
+----
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+Task 2 is running
+----
+
+_Всё время выполняется задача с большим приоритетом._
+
+Изменим реализацию задержки в задачах:
+
+.Изменённый example.c
+[source, c]
+----
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
+
+#include <stdio.h>
+
+#include "riscv-virt.h"
+#include "ns16550.h"
+
+#define exampleDELAY				pdMS_TO_TICKS( 1000 )
+#define exampleTASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
+
+
+void vTask1( void *pvParameters )
+{
+	const char *pcMessage = "Task 1 is running";
+	TickType_t xNextWakeTime;
+	xNextWakeTime = xTaskGetTickCount();
+
+	for( ;; )
+	{
+		vSendString( pcMessage );
+		vTaskDelayUntil( &xNextWakeTime, exampleDELAY );
+	}
+}
+
+void vTask2( void *pvParameters )
+{
+	const char *pcMessage = "Task 2 is running";
+	volatile unsigned long ul;
+
+	TickType_t xNextWakeTime;
+	xNextWakeTime = xTaskGetTickCount();
+
+	for( ;; )
+	{
+		vSendString( pcMessage );
+		vTaskDelayUntil( &xNextWakeTime, exampleDELAY );
+	}
+}
+
+
+int main_example( void )
+{
+	xTaskCreate( vTask1, "Task 1", configMINIMAL_STACK_SIZE * 2U, NULL,
+			exampleTASK_PRIORITY, NULL );
+	xTaskCreate( vTask2, "Task 2", configMINIMAL_STACK_SIZE * 2U, NULL,
+			exampleTASK_PRIORITY + 1, NULL );
+
+	vTaskStartScheduler();
+
+	return 0;
+}
+
+----
+
+Запустив изменённую версию, получим следующий вывод:
+[listing]
+----
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+Task 2 is running
+Task 1 is running
+----
+
+Теперь задачи выполняются поочерёдно.
+Что изменилось?
+
+Дело в том, что в первом случае задержка активная, то есть задача остаётся в состоянии `running`. При завершении цикла `Task2` переходит в состояние `ready`, как и задача с меньшим приоритетом, и планировщик снова выбирает для выполнения задачу с большим приоритетом.
+
+Во втором случае для задержки вызывается функция `vTaskDelayUntil`, переводящая задачу в состояние `blocked`, позволяя выполнится задаче с меньшим приоритетом.
